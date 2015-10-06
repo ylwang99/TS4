@@ -39,7 +39,7 @@ By default, we set the window size to be 15 and word vector is in 50 dimensions.
 
 5.To store the vectors into a map:
 ```
-$ sh target/appassembler/bin/VectorToMap -vectors {vectorsPath/vectors.txt}  -output {vectorsMapFile}
+$ sh target/appassembler/bin/VectorToMap -vectors {vectorsPath/vectors.txt} -output {vectorsMapFile}
 ```
 6.Convert document collections into vectors:
 ```
@@ -49,7 +49,7 @@ $ sh target/appassembler/bin/DocToVec -input {textFile} -vectors {vectorsMapFile
 ```
 $ hadoop fs -put {docvectorsFile}
 ```
-8.Run k-means on Spark:
+8.Run k-means (here we set K to be 100 and number of iterations to be 20) on Spark:
 ```
 spark-shell --master yarn-client --num-executors 40 --driver-memory 256G --executor-memory 50G --conf spark.storage.memoryFraction=1
 
@@ -79,4 +79,4 @@ clustercentersFile stores the centroids of each cluster, and clusterassignFile s
 (docid2, clusterid)
 ...
 ```
-and cluster id starts from 0
+and cluster id starts from 0.
