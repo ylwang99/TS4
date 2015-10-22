@@ -34,12 +34,7 @@ Getting Started
 	
 Preparing Tweets Data
 --------------
-1. Build index on the tweets collection:
-
-	```
-	$ sh target/appassembler/bin/IndexStatuses -collection {collectionPath} -index {indexPath} -optimize
-	```
-2. Generate tweet text in the format of (docindex token1 token2 ...):
+1. Generate tweet text in the format of (docindex token1 token2 ...):
 
 	```
 	$ sh target/appassembler/bin/GenerateTweetText -collection {collectionPath} -output {tweetTextPath} (-hourly)
@@ -123,12 +118,17 @@ Running Queries
 	```
 	$ sh target/appassembler/bin/DocToVec -input {queryTextPath} -vectors {vectorsMap} -output {queryVecPath}
 	```
-3. Generate statistics used for running queries:
+3. Build index on the tweets collection:
+
+	```
+	$ sh target/appassembler/bin/IndexStatuses -collection {collectionPath} -index {indexPath} -optimize
+	```
+4. Generate statistics used for running queries:
 
 	```
 	$ sh target/appassembler/bin/GenerateStatistics -index {indexPath} -collection {collectionPath} -output {statisticsPath}
 	```	
-4. Run queries on kmeans results:
+5. Run queries on kmeans results:
 
 	```
 	$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {centerPath} \
