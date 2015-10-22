@@ -49,6 +49,7 @@ Running API
 	$ sh target/appassembler/bin/GenInput4Glove -input {tweetTextPath} -output {onelineFile}
 	```
 2. GloVe make:
+
 	```
 	$ cd ../glove/
 	$ make
