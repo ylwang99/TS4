@@ -3,13 +3,17 @@ Tweet Streaming Selective Search with Spark
 This is a tool to perform tweet streaming selective search with Spark provided Maching Learning library [MLlib](http://spark.apache.org/docs/latest/mllib-clustering.html). For getting document vectors, document collections are first trained with [GloVe](http://nlp.stanford.edu/projects/glove/) to get vectors for each unique word and then each document is representated as a vector that's the average of each individual word's vectors.
 
 This provides an API with takes document collection as input in the format of:
+```
 docid1 token1 token2 ...
 docid2 token1 token2 ...
 ...
+```
 and outputs cluster assignments for the documents in the format of:
+```
 (docid1, clusterid)
 (docid2, clusterid)
 ...
+```
 
 In the following, we describe how to run TS4 with tweets data and perform evaluation on it in the retrieval task.
 Getting Started
@@ -28,7 +32,7 @@ Getting Started
 	$ mvn clean package appassembler:assemble
 	```
 	
-Prepare Tweets Data
+Preparing Tweets Data
 --------------
 1. Build index on the tweets collection:
 
@@ -107,7 +111,7 @@ Running API
 	```
 and cluster id starts from 0.
 
-Running queries
+Running Queries
 --------------
 1. Generate query text from TREC Microblog topics, parsed by TweetAnalyzer:
 
@@ -127,7 +131,7 @@ Running queries
 	-queries {queriesPath} -queriesvector {queryVectorPath} > {results}
 	```
 
-Evaluating results
+Evaluating Results
 --------------
 1. Make trec_eval:
 
