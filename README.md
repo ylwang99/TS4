@@ -15,10 +15,12 @@ In the following, we describe how to run TS4 with tweets data and perform evalua
 Getting Started
 --------------
 1. You can clone the repo with the following command:
+
 	```
 	$ git clone git://github.com/ylwang/TS4.git
 	``` 
 2. Once you've cloned the repository, change directory into `ts4-core`, switch to branch ts4-with-tweets and build the package with Maven:
+
 	```
 	$ cd TS4
 	$ git checkout ts4-with-tweets
@@ -28,10 +30,12 @@ Getting Started
 Prepare Tweets Data
 --------------
 1. Build index on the tweets collection:
+
 	```
 	$ sh target/appassembler/bin/IndexStatuses -collection {collectionPath} -index {indexPath} -optimize
 	```
 2. Generate tweet text in the format of (docindex token1 token2 ...):
+
 	```
 	$ sh target/appassembler/bin/GenerateTweetText -collection {collectionPath} -output {tweetTextPath} (-hourly)
 	```
