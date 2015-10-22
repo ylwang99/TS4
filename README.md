@@ -1,4 +1,5 @@
 Tweet Streaming Selective Search with Spark
+To do: Modify to work with tweets
 =============
 This is a tool to perform tweet streaming selective search with Spark provided Maching Learning library [MLlib](http://spark.apache.org/docs/latest/mllib-clustering.html). For getting document vectors, document collections are first trained with [GloVe](http://nlp.stanford.edu/projects/glove/) to get vectors for each unique word and then each document is representated as a vector that's the average of each individual word's vectors.
 
