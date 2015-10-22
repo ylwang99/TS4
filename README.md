@@ -48,9 +48,14 @@ Running API
 	```
 	$ sh target/appassembler/bin/GenInput4Glove -input {tweetTextPath} -output {onelineFile}
 	```
-2. Run GloVe:
+2. GloVe make:
 	```
-	$ ./../glove/run.sh {onelineFile} {vectorsPath}
+	$ cd ../glove/
+	$ make
+	```
+3. Run GloVe:
+	```
+	$ ./run.sh {onelineFile} {vectorsPath}
 	```
 	Here the vectorsPath stores all the vectors information for the collection, and vectorsPath/vectors.txt has the word vectors in the format of:
 	```
@@ -60,21 +65,22 @@ Running API
 	```
 	By default, we set the window size to be 15 and word vector is in 50 dimensions. To have more variants, feel free to modify glove/run.sh accordingly.
 
-3. To store the vectors into a map so it's easier to generate vector representations for docs:
+4. To store the vectors into a map so it's easier to generate vector representations for docs:
 	```
+	$ cd ../ts4-core
 	$ sh target/appassembler/bin/VectorToMap -vectors {vectorsPath/vectors.txt} -output {vectorsMapFile}
 	```
-4. Convert document collections into vectors:
+5. Convert document collections into vectors:
 
 	```
 	$ sh target/appassembler/bin/DocToVec -input {tweetTextPath} -vectors {vectorsMapFile} -output {docvectorsFile}
 	```
-5. Put docvectorsFile onto HDFS:
+6. Put docvectorsFile onto HDFS:
 
 	```
 	$ hadoop fs -put {docvectorsFile}
 	```
-6. Run k-means (here we set K to be 100 and number of iterations to be 20) on Spark:
+7. Run k-means (here we set K to be 100 and number of iterations to be 20) on Spark:
 	```
 	spark-shell --master yarn-client --num-executors 40 --driver-memory 256G --executor-memory 50G --conf spark.storage.memoryFraction=1
 	
