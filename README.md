@@ -1,34 +1,51 @@
 Tweet Streaming Selective Search with Spark
-To do: Modify to work with tweets
 =============
 This is a tool to perform tweet streaming selective search with Spark provided Maching Learning library [MLlib](http://spark.apache.org/docs/latest/mllib-clustering.html). For getting document vectors, document collections are first trained with [GloVe](http://nlp.stanford.edu/projects/glove/) to get vectors for each unique word and then each document is representated as a vector that's the average of each individual word's vectors.
 
-Getting Started
---------------
-1.You can clone the repo with the following command:
-```
-$ git clone git://github.com/ylwang/TS4.git
-``` 
-2.Once you've cloned the repository, change directory into `ts4-core` and build the package with Maven:
-```
-$ cd TS4/ts4-core
-$ mvn clean package appassembler:assemble
-```
-3.Generate input data for GloVe:
-```
-$ sh target/appassembler/bin/GenInput4Glove -input {textFile} -output {textInOneLineFile}
-```
-Here the textFile is in the format of:
-```
+This provides an API with takes document collection as input in the format of:
 docid1 token1 token2 ...
 docid2 token1 token2 ...
 ...
-```
-seperated by white space.
+and outputs cluster assignments for the documents in the format of:
+(docid1, clusterid)
+(docid2, clusterid)
+...
 
-4.Run GloVe:
+In the following, we describe how to run TS4 with tweets data and perform evaluation on it in the retrieval task.
+Getting Started
+--------------
+1. You can clone the repo with the following command:
 ```
-$ ./../glove/run.sh {textInOneLineFile} {vectorsPath}
+$ git clone git://github.com/ylwang/TS4.git
+``` 
+2. Once you've cloned the repository, change directory into `ts4-core`, switch to branch ts4-with-tweets and build the package with Maven:
+```
+$ cd TS4
+$ git checkout ts4-with-tweets
+$ cd ts4-core
+$ mvn clean package appassembler:assemble
+```
+Prepare Tweets Data
+--------------
+1. Build index on the tweets collection:
+```
+$ sh target/appassembler/bin/IndexStatuses -collection {collectionPath} -index {indexPath} -optimize
+```
+2. Generate tweet text in the format of (docindex token1 token2 ...):
+```
+$ sh target/appassembler/bin/GenerateTweetText -collection {collectionPath} -output {tweetTextPath} (-hourly)
+```
+Here the -hourly option enables us to store the tweets data in different files on an hourly-basis.
+
+Running API
+--------------
+1. Generate input file to be fed into glove, basically, make the collection a one line document delimited by white space:
+```
+$ sh target/appassembler/bin/GenInput4Glove -input {tweetTextPath} -output {onelineFile}
+```
+2. Run GloVe:
+```
+$ ./../glove/run.sh {onelineFile} {vectorsPath}
 ```
 Here the vectorsPath stores all the vectors information for the collection, and vectorsPath/vectors.txt has the word vectors in the format of:
 ```
@@ -38,19 +55,19 @@ word2 ele1 ele2 ...
 ```
 By default, we set the window size to be 15 and word vector is in 50 dimensions. To have more variants, feel free to modify glove/run.sh accordingly.
 
-5.To store the vectors into a map:
+3. To store the vectors into a map so it's easier to generate vector representations for docs:
 ```
 $ sh target/appassembler/bin/VectorToMap -vectors {vectorsPath/vectors.txt} -output {vectorsMapFile}
 ```
-6.Convert document collections into vectors:
+4. Convert document collections into vectors:
 ```
-$ sh target/appassembler/bin/DocToVec -input {textFile} -vectors {vectorsMapFile} -output {docvectorsFile}
+$ sh target/appassembler/bin/DocToVec -input {tweetTextPath} -vectors {vectorsMapFile} -output {docvectorsFile}
 ```
-7.Put docvectorsFile onto HDFS:
+5. Put docvectorsFile onto HDFS:
 ```
 $ hadoop fs -put {docvectorsFile}
 ```
-8.Run k-means (here we set K to be 100 and number of iterations to be 20) on Spark:
+6. Run k-means (here we set K to be 100 and number of iterations to be 20) on Spark:
 ```
 spark-shell --master yarn-client --num-executors 40 --driver-memory 256G --executor-memory 50G --conf spark.storage.memoryFraction=1
 
@@ -81,3 +98,29 @@ clustercentersFile stores the centroids of each cluster, and clusterassignFile s
 ...
 ```
 and cluster id starts from 0.
+
+Running queries
+--------------
+1. Generate query text from TREC Microblog topics, parsed by TweetAnalyzer:
+```
+$ sh target/appassembler/bin/GenerateQueryText -queries {queryPath} -output {queryTextPath}
+```
+2. Generate vector representations for queries based on word vectors:
+```
+$ sh target/appassembler/bin/DocToVec -input {queryTextPath} -vectors {vectorsMap} -output {queryVecPath}
+```
+3. Run queries on kmeans results:
+```
+$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {centerPath} \
+-clusterindexes {clusterassignPath} -dimension {dimension} -partition {partitionNum} -top {N} \
+-queries {queriesPath} -queriesvector {queryVectorPath} > {results}
+```
+
+Evaluating results
+--------------
+```
+$ cd ../etc/trec_eval.9.0/
+$ make
+$ cd ../../ts4-core/
+$ ../etc/trec_eval.9.0/trec_eval -q -c {qrelsFile} {results}
+```
