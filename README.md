@@ -123,7 +123,12 @@ Running Queries
 	```
 	$ sh target/appassembler/bin/DocToVec -input {queryTextPath} -vectors {vectorsMap} -output {queryVecPath}
 	```
-3. Run queries on kmeans results:
+3. Generate statistics used for running queries:
+
+	```
+	$ sh target/appassembler/bin/GenerateStatistics -index {indexPath} -collection {collectionPath} -output {statisticsPath}
+	```	
+4. Run queries on kmeans results:
 
 	```
 	$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {centerPath} \
