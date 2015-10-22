@@ -90,7 +90,7 @@ public class GenerateTweetText {
 			if (status.getText() == null) {
 				continue;
 			}
-			bw_text.write(cnt);
+			bw_text.write(Integer.toString(cnt));
 			List<String> terms = parse(ANALYZER, status.getText());
 			for (String term : terms) {
 				bw_text.write(" " + term);
