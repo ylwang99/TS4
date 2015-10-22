@@ -40,6 +40,7 @@ Here the -hourly option enables us to store the tweets data in different files o
 Running API
 --------------
 1. Generate input file to be fed into glove, basically, make the collection a one line document delimited by white space:
+
 	```
 	$ sh target/appassembler/bin/GenInput4Glove -input {tweetTextPath} -output {onelineFile}
 	```
@@ -60,10 +61,12 @@ Running API
 	$ sh target/appassembler/bin/VectorToMap -vectors {vectorsPath/vectors.txt} -output {vectorsMapFile}
 	```
 4. Convert document collections into vectors:
+
 	```
 	$ sh target/appassembler/bin/DocToVec -input {tweetTextPath} -vectors {vectorsMapFile} -output {docvectorsFile}
 	```
 5. Put docvectorsFile onto HDFS:
+
 	```
 	$ hadoop fs -put {docvectorsFile}
 	```
@@ -102,14 +105,17 @@ and cluster id starts from 0.
 Running queries
 --------------
 1. Generate query text from TREC Microblog topics, parsed by TweetAnalyzer:
+
 	```
 	$ sh target/appassembler/bin/GenerateQueryText -queries {queryPath} -output {queryTextPath}
 	```
 2. Generate vector representations for queries based on word vectors:
+
 	```
 	$ sh target/appassembler/bin/DocToVec -input {queryTextPath} -vectors {vectorsMap} -output {queryVecPath}
 	```
 3. Run queries on kmeans results:
+
 	```
 	$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {centerPath} \
 	-clusterindexes {clusterassignPath} -dimension {dimension} -partition {partitionNum} -top {N} \
@@ -119,11 +125,13 @@ Running queries
 Evaluating results
 --------------
 1. Make trec_eval:
+
 	```
 	$ cd ../etc/trec_eval.9.0/
 	$ make
 	```
 2. Run evaluation
+
 	```
 	$ cd ../../ts4-core/
 	$ ../etc/trec_eval.9.0/trec_eval -q -c {qrelsFile} {results}
