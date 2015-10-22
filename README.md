@@ -70,7 +70,7 @@ val clusterCenters = clusters.clusterCenters
 val clusterCentersRDD = sc.parallelize(clusterCenters)
 clusterCentersRDD.saveAsTextFile("{clustercentersFile}")
 
-val tweetsAssigned = clusters.predict(parsedData)
+val tweetsAssigned = parsedData.map(s => new Tuple2(s._1, clusters.predict(s._2)))
 tweetsAssigned.saveAsTextFile("{clusterassignFile}")
 ```
 clustercentersFile stores the centroids of each cluster, and clusterassignFile stores the cluster assignment for each docid in the format of:
