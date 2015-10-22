@@ -1,7 +1,12 @@
 package ts4.ts4_core.selectivesearch;
 
+/* Generate vector representations for docs based on word vectors
+ * Run: sh target/appassembler/bin/DocToVec -input {tweetTextPath} -vectors {vectorsMap} -output {tweetVecPath}
+ * 
+ */
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
@@ -9,6 +14,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -64,10 +70,24 @@ public class DocToVec {
 
 		String inputPath = cmdline.getOptionValue(INPUT_OPTION);
 		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)));
-		int cnt = 0;
+		
+		File input = new File(inputPath);
+		File output = new File(outputPath);
+		if (input.isDirectory()) {
+			File[] files = input.listFiles();
+			Arrays.sort(files);
+			for (File file : files) {
+				write(file, new File(outputPath + "/" + file.getName()), dimension, map);
+			}
+		} else {
+			write(input, output, dimension, map);
+		}
+	}
+	
+	public static void write(File input, File output, int dimension, Map<String, float[]> map) throws IOException {
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output)));
 		try {
-			FileInputStream fis = new FileInputStream(inputPath);
+			FileInputStream fis = new FileInputStream(input);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			String line;
 			while((line = br.readLine()) != null) {
@@ -86,10 +106,6 @@ public class DocToVec {
 				}
 				for (int i = 0; i < dimension; i ++) {
 					bw.write(" " + sum[i]);
-				}
-				cnt ++;
-				if (cnt % 100000 == 0) {
-					System.out.println(cnt + " docs processed.");
 				}
 				bw.newLine();
 			}

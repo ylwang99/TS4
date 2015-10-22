@@ -1,13 +1,18 @@
+/* Generate input file to be fed into glove, basically, make the collection a one line document delimited by white space
+ * Run: sh target/appassembler/bin/GenInput4Glove -input {inputPath} -output {onelineFile}
+ */
 package ts4.ts4_core.selectivesearch;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -42,12 +47,23 @@ public class GenInput4Glove {
 			System.exit(-1);
 		}
 		
-		String inputPath = cmdline.getOptionValue(INPUT_OPTION);
-		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
-		
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)));
+		File input = new File(cmdline.getOptionValue(INPUT_OPTION));
+		File output = new File(cmdline.getOptionValue(OUTPUT_OPTION));
+		if (input.isDirectory()) {
+			File[] files = input.listFiles();
+			Arrays.sort(files);
+			for (File file : files) {
+				write(file, output);
+			}
+		} else {
+			write(input, output);
+		}
+	}
+	
+	public static void write(File input, File output) throws IOException {
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output)));
 		try {
-			FileInputStream fis = new FileInputStream(inputPath);
+			FileInputStream fis = new FileInputStream(input);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			String line;
 			while((line = br.readLine()) != null) {

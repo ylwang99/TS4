@@ -1,3 +1,6 @@
+/* To store the vectors into a map so it's easier to generate vector representations for docs
+ * Run: sh target/appassembler/bin/VectorToMap -vectors {vectorsPath} -output {vectorsMap}
+ */
 package ts4.ts4_core.selectivesearch;
 
 import java.io.BufferedReader;
