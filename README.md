@@ -27,6 +27,7 @@ Getting Started
 	$ cd ts4-core
 	$ mvn clean package appassembler:assemble
 	```
+	
 Prepare Tweets Data
 --------------
 1. Build index on the tweets collection:
