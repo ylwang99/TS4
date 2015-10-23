@@ -146,7 +146,7 @@ Running Queries
 	```
 	$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {clustercentersFile} \
 	-clusterindexes {clusterassignFile} -dimension {dimension} -partition {partitionNum} -top {N} \
-	-queries {queriesPath} -queriesvector {queryVectorPath} > {results}
+	-queries {queriesPath} -queriesvector {queryVectorPath} -output {results}
 	```
 
 Evaluating Results
