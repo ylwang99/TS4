@@ -27,6 +27,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <log4j.configuration>src/main/java/log4j.properties</log4j.configuration>
   </properties>
 
   <build>
