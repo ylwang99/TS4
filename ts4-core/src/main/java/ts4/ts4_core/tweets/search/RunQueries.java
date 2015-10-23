@@ -1,7 +1,7 @@
 /* Run queries on kmeans results
  * Run: sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {centerPath}
  * 		-clusterindexes {clusterassignPath} -dimension {dimension} -partition {partitionNum} -top {N}
- * 		-queries {queriesPath} -queriesvector {queryVectorPath}
+ * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath}
  */
 package ts4.ts4_core.tweets.search;
 
@@ -386,7 +386,8 @@ public class RunQueries {
 //			out.println(size);
 			int count = 1;
 			for (PairOfIntFloat pair : topN.extractAll()) {
-				bw.write(String.format("%d Q0 %s %d %f kmeans\n", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
+				bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
+				bw.newLine();
 				count ++;
 			}
 			topicCnt ++;
