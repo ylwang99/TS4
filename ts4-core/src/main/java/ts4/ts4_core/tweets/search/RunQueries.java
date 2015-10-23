@@ -6,10 +6,12 @@
 package ts4.ts4_core.tweets.search;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -55,6 +57,7 @@ public class RunQueries {
 	private static final String TOP = "top";
 	private static final String QUERIES_OPTION = "queries";
 	private static final String QUERIES_VECTOR_OPTION = "queriesvector";
+	private static final String OUTPUT_OPTION = "output";
 
 	@SuppressWarnings({ "static-access" })
 	public static void main(String[] args) throws Exception {
@@ -81,6 +84,8 @@ public class RunQueries {
 				.withDescription("file containing topics in TREC format").create(QUERIES_OPTION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
 				.withDescription("query vector").create(QUERIES_VECTOR_OPTION));
+		options.addOption(OptionBuilder.withArgName("file").hasArg()
+				.withDescription("output location").create(OUTPUT_OPTION));
 
 		CommandLine cmdline = null;
 		CommandLineParser parser = new GnuParser();
@@ -91,7 +96,7 @@ public class RunQueries {
 			System.exit(-1);
 		}
 
-		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_CENTER_OPTION) || !cmdline.hasOption(CLUSTER_INDEX_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION)) {
+		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_CENTER_OPTION) || !cmdline.hasOption(CLUSTER_INDEX_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(RunQueries.class.getName(), options);
 			System.exit(-1);
@@ -106,6 +111,7 @@ public class RunQueries {
 		int top = cmdline.hasOption(TOP) ? Integer.parseInt(cmdline.getOptionValue(TOP)) : 1;
 		String queryPath = cmdline.getOptionValue(QUERIES_OPTION);
 		String queryVectorPath = cmdline.getOptionValue(QUERIES_VECTOR_OPTION);
+		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
 		
 		// Read in index
 		File indexLocation = new File(indexPath);
@@ -316,7 +322,8 @@ public class RunQueries {
 		LOG.info("Finished reading cluster indexes from file.");
 		
 		LOG.info("Running queries.");
-		PrintStream out = new PrintStream(System.out, true, "UTF-8");
+//		PrintStream out = new PrintStream(System.out, true, "UTF-8");
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)));
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
 		int topicTotal = 0;
 		for ( @SuppressWarnings("unused") TrecTopic topic : topics ) {
@@ -379,12 +386,12 @@ public class RunQueries {
 //			out.println(size);
 			int count = 1;
 			for (PairOfIntFloat pair : topN.extractAll()) {
-				out.println(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
+				bw.write(String.format("%d Q0 %s %d %f kmeans\n", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
 				count ++;
 			}
 			topicCnt ++;
 		}
-		out.close();
+		bw.close();
 	}
 
 	public static List<String> parse(Analyzer analyzer, String s) throws IOException {
