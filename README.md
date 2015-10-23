@@ -85,6 +85,12 @@ Getting Started
 	val tweetsAssigned = parsedData.map(s => new Tuple2(s._1, clusters.predict(s._2)))
 	tweetsAssigned.saveAsTextFile("{clusterassignFile}")
 	```
+10. Put clustercenters and clusterassignment files on local disk:
+
+	```
+	$ hadoop fs -get {clustercentersFile}
+	$ hadoop fs -get {clusterassignFile}
+	```
 	clustercentersFile stores the centroids of each cluster, and clusterassignFile stores the cluster assignment for each docid in the format of:
 	```
 	(docid1, clusterid)
@@ -92,9 +98,3 @@ Getting Started
 	...
 	```
 	and cluster id starts from 0.
-10. Put clustercenters and clusterassignment files on local disk:
-
-	```
-	$ hadoop fs -get {clustercentersFile}
-	$ hadoop fs -get {clusterassignFile}
-	```
