@@ -49,6 +49,9 @@ public class GenInput4Glove {
 		
 		File input = new File(cmdline.getOptionValue(INPUT_OPTION));
 		File output = new File(cmdline.getOptionValue(OUTPUT_OPTION));
+		if (output.exists()) {
+			output.delete();
+		}
 		if (input.isDirectory()) {
 			File[] files = input.listFiles();
 			Arrays.sort(files);
@@ -61,7 +64,7 @@ public class GenInput4Glove {
 	}
 	
 	public static void write(File input, File output) throws IOException {
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output)));
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output, true)));
 		try {
 			FileInputStream fis = new FileInputStream(input);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
