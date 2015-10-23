@@ -92,3 +92,9 @@ Getting Started
 	...
 	```
 	and cluster id starts from 0.
+10. Put clustercenters and clusterassignment files on local disk:
+
+	```
+	$ hadoop fs -get {clustercentersFile}
+	$ hadoop fs -get {clusterassignFile}
+	```
