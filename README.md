@@ -96,7 +96,7 @@ Running API
 	})
 	val numClusters = 100
 	val numIterations = 20
-		val clusters = KMeans.train(parsedData.map(_._2), numClusters, numIterations)
+	val clusters = KMeans.train(parsedData.map(_._2), numClusters, numIterations)
 	
 	val clusterCenters = clusters.clusterCenters
 	val clusterCentersRDD = sc.parallelize(clusterCenters)
