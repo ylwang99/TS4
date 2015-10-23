@@ -330,7 +330,7 @@ public class RunQueries {
             while((line = br.readLine()) != null) {
             	String[] vector = line.split(" ");
             	for (int i = 0; i < dimension; i ++) {
-            		queryVector[ind][i] = Double.parseDouble(vector[i]);
+            		queryVector[ind][i] = Double.parseDouble(vector[i + 1]);
             	}
             	ind ++;
             }
