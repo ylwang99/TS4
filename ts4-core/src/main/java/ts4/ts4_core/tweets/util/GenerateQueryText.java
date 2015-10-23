@@ -65,10 +65,11 @@ public class GenerateQueryText {
 		BufferedWriter bw_text = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)));
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
-		for ( TrecTopic topic : topics ) {  
+		for ( TrecTopic topic : topics ) { 
+			bw_text.write(topic.getId());
 			List<String> queryterms = parse(ANALYZER, topic.getQuery());
 			for (String queryterm : queryterms) {
-				bw_text.write(queryterm + " ");
+				bw_text.write(" " + queryterm);
 			}
 			bw_text.newLine();
 		}
