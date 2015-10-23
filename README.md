@@ -112,6 +112,12 @@ Running API
 	...
 	```
 and cluster id starts from 0.
+8. Put clustercenters and clusterassignment files on local disk:
+
+	```
+	$ hadoop fs -get {clustercentersFile}
+	$ hadoop fs -get {clusterassignFile}
+	```
 
 Running Queries
 --------------
@@ -138,8 +144,8 @@ Running Queries
 5. Run queries on kmeans results:
 
 	```
-	$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {centerPath} \
-	-clusterindexes {clusterassignPath} -dimension {dimension} -partition {partitionNum} -top {N} \
+	$ sh target/appassembler/bin/RunQueries -index {indexPath} -stats {statsPath} -clustercenters {clustercentersFile} \
+	-clusterindexes {clusterassignFile} -dimension {dimension} -partition {partitionNum} -top {N} \
 	-queries {queriesPath} -queriesvector {queryVectorPath} > {results}
 	```
 
