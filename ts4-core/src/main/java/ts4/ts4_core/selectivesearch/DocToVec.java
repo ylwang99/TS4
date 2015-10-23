@@ -76,6 +76,9 @@ public class DocToVec {
 		if (input.isDirectory()) {
 			File[] files = input.listFiles();
 			Arrays.sort(files);
+			if (!output.exists()) {
+				output.mkdir();
+			}
 			for (File file : files) {
 				write(file, new File(outputPath + "/" + file.getName()), dimension, map);
 			}
