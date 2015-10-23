@@ -95,8 +95,10 @@ public class DocToVec {
 				String[] tokens = line.split(" ");
 				bw.write(tokens[0]);
 				for (int i = 1; i < tokens.length; i ++) {
-					for (int j = 0; j < dimension; j ++) {
-						sum[j] += map.get(tokens[i])[j];
+					if (map.containsKey(tokens[i]) {
+						for (int j = 0; j < dimension; j ++) {
+							sum[j] += map.get(tokens[i])[j];
+						}
 					}
 				}
 				if (tokens.length > 1) {
