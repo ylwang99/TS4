@@ -295,7 +295,6 @@ public class RunQueries {
 		for (int i = 0; i < partitionNum; i ++) {
 			indexes.add(new ArrayList<Integer>());
 		}
-		int cnt = 0;
 		try {
 			File[] files = new File(clusterIndexesPath).listFiles();
 			Arrays.sort(files);
@@ -304,10 +303,9 @@ public class RunQueries {
 					BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
                     String line;
                     while((line = br.readLine()) != null) {
-                    	// line = line.substring(1, line.length() - 1);
-                    	// String[] indexmap = line.split(",");
-                    	// indexes.get(Integer.parseInt(indexmap[1])).add(Integer.parseInt(indexmap[0]));
-                    	indexes.get(Integer.parseInt(line)).add(cnt++);
+                    	line = line.substring(1, line.length() - 1);
+                    	String[] indexmap = line.split(",");
+                    	indexes.get(Integer.parseInt(indexmap[1])).add(Integer.parseInt(indexmap[0]));
         			}
                     br.close();
 				}
