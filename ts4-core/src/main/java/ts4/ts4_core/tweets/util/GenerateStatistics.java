@@ -37,6 +37,7 @@ import edu.umd.cloud9.util.map.HMapII;
 public class GenerateStatistics {
 	public static int NUM_DOCS = 16141812;
 	public static int TOTAL_TERMS = 203429861;
+	public static int TOP = 1000;
 	
 	private static final Logger LOG = Logger.getLogger(GenerateStatistics.class);
 	public static final Analyzer ANALYZER = new TweetAnalyzer(Version.LUCENE_43);
