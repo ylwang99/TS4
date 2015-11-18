@@ -71,7 +71,7 @@ Getting Started
 	val tweets = sc.textFile("{docvectorsFile}")
 	val parsedData = tweets.map(s => {
 	 val arr = s.split(" ", 2);
-	 new Tuple2(arr(0).toLong, 
+	 new Tuple2(arr(0), 
 	   Vectors.dense(arr(1).split(" ").map(_.toDouble)))
 	})
 	val numClusters = 100
