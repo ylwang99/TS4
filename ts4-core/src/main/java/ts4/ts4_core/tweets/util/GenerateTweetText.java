@@ -111,9 +111,11 @@ public class GenerateTweetText {
 	}
 	
 	public static void generateTextHourly(StatusStream stream, String outputPath) throws FileNotFoundException, IOException {
-		if (!new File(outputPath).exists()) {
-			new File(outputPath).mkdir();
+		File outputFile = new File(outputPath);
+		if (outputFile.exists()) {
+			outputFile.delete();
 		}
+		outputFile.mkdir();
 		String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 		Map<String, String> monthMap = new HashMap<String, String>();
 		for (int i = 0; i < months.length; i ++) {
@@ -169,6 +171,9 @@ public class GenerateTweetText {
 		CharTermAttribute cattr = tokenStream.addAttribute(CharTermAttribute.class);
 		tokenStream.reset();
 		while (tokenStream.incrementToken()) {
+			if (cattr.toString().length() < 1) {
+				continue;
+			}
 			list.add(cattr.toString());
 		}
 		tokenStream.end();
