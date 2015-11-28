@@ -411,26 +411,30 @@ public class RunQueriesDaily {
 				}
 				
 				for (int center = 0; center < centers.size(); center ++) {
-					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], top);
-					for (int partition : partitions) {
-						for (int idx = 0; idx < indexes.get(center).get(partition).size(); idx ++) {
-							int i = indexes.get(center).get(partition).get(idx);
-							if (ids[i] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							float score = 0.0F;
-							for (int t = 0; t < c; t++) {
-								float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
-								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-									if (terms[offsets[i] + j] == qids[t]) {
-										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-										score += Math.log(mu / (docLengthEncoded[i] + mu));
-										break;
+//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], top);
+					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
+					for (int topNum = 0; topNum < top; topNum ++) {
+//						for (int partition : partitions) {
+							int partition = partitions[topNum];
+							for (int idx = 0; idx < indexes.get(center).get(partition).size(); idx ++) {
+								int i = indexes.get(center).get(partition).get(idx);
+								if (ids[i] > topic.getQueryTweetTime()) {
+									continue;
+								}
+								float score = 0.0F;
+								for (int t = 0; t < c; t++) {
+									float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
+									for (int j = 0; j < docLengthOrdered[i]; j ++) {
+										if (terms[offsets[i] + j] == qids[t]) {
+											score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+											score += Math.log(mu / (docLengthEncoded[i] + mu));
+											break;
+										}
 									}
 								}
-							}
-							if (score > 0) {
-								topN.add(i, score);
+								if (score > 0) {
+									topN.add(i, score);
+								}
 							}
 						}
 					}
@@ -462,7 +466,8 @@ public class RunQueriesDaily {
 		return list;
 	}
 
-	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
+//	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
+	public static int[] determinePartition(double[][] centers, double[] queryVector, int partition) {
 		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>();
 		for(int i = 0; i < centers.length; i ++){
 			double distance = 0;
@@ -471,15 +476,15 @@ public class RunQueriesDaily {
 			}
 			all.put(distance, i);
 		}
-		int[] result = new int[top];
+		int[] result = new int[partition];
 		int count = 0;
 		for (Entry<Double, Integer> entry : all.entrySet()) {
-			if (count < top) {
-				result[count] = entry.getValue();
-				count ++;
-			} else {
-				break;
-			}
+//			if (count < top) {
+			result[count] = entry.getValue();
+			count ++;
+//			} else {
+//				break;
+//			}
 		}
 		return result;
 	}
