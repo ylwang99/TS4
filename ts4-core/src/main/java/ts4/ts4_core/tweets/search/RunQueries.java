@@ -323,7 +323,6 @@ public class RunQueries {
 		
 		LOG.info("Running queries.");
 //		PrintStream out = new PrintStream(System.out, true, "UTF-8");
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)));
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
 		int topicTotal = 0;
 		for ( @SuppressWarnings("unused") TrecTopic topic : topics ) {
@@ -345,54 +344,58 @@ public class RunQueries {
 		} catch(Exception e){
             System.out.println("File not found");
 		}
-		int topicCnt = 0;
-		for ( TrecTopic topic : topics ) {  
-			List<String> queryterms = parse(ANALYZER, topic.getQuery());
-			TopNScoredInts topN = new TopNScoredInts(numResults);
-			int[] qids = new int[queryterms.size()];
-			float[] freqs = new float[queryterms.size()];
-			int c = 0;
-			for (String term : queryterms) {
-				qids[c] = termStats.getId(term);
-				freqs[c] = termStats.getFreq(termStats.getId(term));
-				c++;
-			}
-			
-			int[] partitions = determinePartition(centers, queryVector[topicCnt], top);
-//			int size = 0;
-			for (int partition : partitions) {
-//				size += indexes.get(partition).size();
-				for (int idx = 0; idx < indexes.get(partition).size(); idx ++) {
-					int i = indexes.get(partition).get(idx);
-					if (ids[i] > topic.getQueryTweetTime()) {
-						continue;
-					}
-					float score = 0.0F;
-					for (int t = 0; t < c; t++) {
-						float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
-						for (int j = 0; j < docLengthOrdered[i]; j ++) {
-							if (terms[offsets[i] + j] == qids[t]) {
-								score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-								score += Math.log(mu / (docLengthEncoded[i] + mu));
-								break;
+
+		for (top = 1; top <= partitionNum; top ++) {
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d50_mean_test_top" + top + ".txt")));
+			int topicCnt = 0;
+			for ( TrecTopic topic : topics ) {  
+				List<String> queryterms = parse(ANALYZER, topic.getQuery());
+				TopNScoredInts topN = new TopNScoredInts(numResults);
+				int[] qids = new int[queryterms.size()];
+				float[] freqs = new float[queryterms.size()];
+				int c = 0;
+				for (String term : queryterms) {
+					qids[c] = termStats.getId(term);
+					freqs[c] = termStats.getFreq(termStats.getId(term));
+					c++;
+				}
+				
+				int[] partitions = determinePartition(centers, queryVector[topicCnt], top);
+	//			int size = 0;
+				for (int partition : partitions) {
+	//				size += indexes.get(partition).size();
+					for (int idx = 0; idx < indexes.get(partition).size(); idx ++) {
+						int i = indexes.get(partition).get(idx);
+						if (ids[i] > topic.getQueryTweetTime()) {
+							continue;
+						}
+						float score = 0.0F;
+						for (int t = 0; t < c; t++) {
+							float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
+							for (int j = 0; j < docLengthOrdered[i]; j ++) {
+								if (terms[offsets[i] + j] == qids[t]) {
+									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+									score += Math.log(mu / (docLengthEncoded[i] + mu));
+									break;
+								}
 							}
 						}
-					}
-					if (score > 0) {
-						topN.add(i, score);
+						if (score > 0) {
+							topN.add(i, score);
+						}
 					}
 				}
+	//			out.println(size);
+				int count = 1;
+				for (PairOfIntFloat pair : topN.extractAll()) {
+					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
+					bw.newLine();
+					count ++;
+				}
+				topicCnt ++;
 			}
-//			out.println(size);
-			int count = 1;
-			for (PairOfIntFloat pair : topN.extractAll()) {
-				bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
-				bw.newLine();
-				count ++;
-			}
-			topicCnt ++;
+			bw.close();
 		}
-		bw.close();
 	}
 
 	public static List<String> parse(Analyzer analyzer, String s) throws IOException {
