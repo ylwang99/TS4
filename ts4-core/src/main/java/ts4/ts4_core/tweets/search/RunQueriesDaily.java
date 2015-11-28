@@ -415,26 +415,25 @@ public class RunQueriesDaily {
 					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
 					for (int topNum = 0; topNum < top; topNum ++) {
 //						for (int partition : partitions) {
-							int partition = partitions[topNum];
-							for (int idx = 0; idx < indexes.get(center).get(partition).size(); idx ++) {
-								int i = indexes.get(center).get(partition).get(idx);
-								if (ids[i] > topic.getQueryTweetTime()) {
-									continue;
-								}
-								float score = 0.0F;
-								for (int t = 0; t < c; t++) {
-									float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
-									for (int j = 0; j < docLengthOrdered[i]; j ++) {
-										if (terms[offsets[i] + j] == qids[t]) {
-											score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-											score += Math.log(mu / (docLengthEncoded[i] + mu));
-											break;
-										}
+						int partition = partitions[topNum];
+						for (int idx = 0; idx < indexes.get(center).get(partition).size(); idx ++) {
+							int i = indexes.get(center).get(partition).get(idx);
+							if (ids[i] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							float score = 0.0F;
+							for (int t = 0; t < c; t++) {
+								float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
+								for (int j = 0; j < docLengthOrdered[i]; j ++) {
+									if (terms[offsets[i] + j] == qids[t]) {
+										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+										score += Math.log(mu / (docLengthEncoded[i] + mu));
+										break;
 									}
 								}
-								if (score > 0) {
-									topN.add(i, score);
-								}
+							}
+							if (score > 0) {
+								topN.add(i, score);
 							}
 						}
 					}
