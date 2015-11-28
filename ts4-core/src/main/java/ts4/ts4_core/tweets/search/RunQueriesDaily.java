@@ -395,6 +395,7 @@ public class RunQueriesDaily {
 		}
 		
 		for (top = 1; top <= partitionNum; top ++) {
+			LOG.info("top " + top);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d50_mean_test_day" + day + "_top" + top + ".txt")));
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  

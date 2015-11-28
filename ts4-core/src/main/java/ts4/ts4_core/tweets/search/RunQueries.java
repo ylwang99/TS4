@@ -346,6 +346,7 @@ public class RunQueries {
 		}
 
 		for (top = 1; top <= partitionNum; top ++) {
+			LOG.info("top " + top);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d50_mean_test_top" + top + ".txt")));
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
