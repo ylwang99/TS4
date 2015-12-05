@@ -27,7 +27,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
-import org.mortbay.log.Log;
 
 import cc.twittertools.index.TweetAnalyzer;
 
