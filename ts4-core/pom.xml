@@ -59,6 +59,13 @@
               </jvmSettings>
             </program>
             <program>
+              <mainClass>ts4.ts4_core.tweets.util.GenerateQueryText_Edinburgh</mainClass>
+              <name>GenerateQueryText_Edinburgh</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
               <mainClass>ts4.ts4_core.tweets.util.GenerateStatistics</mainClass>
               <name>GenerateStatistics</name>
               <jvmSettings>
