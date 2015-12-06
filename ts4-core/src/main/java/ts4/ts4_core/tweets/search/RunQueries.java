@@ -345,9 +345,10 @@ public class RunQueries {
             System.out.println("File not found");
 		}
 
+		float totalSize = 0;
+		LOG.info("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
-			LOG.info("top " + top);
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d50_mean_test_top" + top + ".txt")));
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_all_top" + top + ".txt")));
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
 				List<String> queryterms = parse(ANALYZER, topic.getQuery());
@@ -362,14 +363,14 @@ public class RunQueries {
 				}
 				
 				int[] partitions = determinePartition(centers, queryVector[topicCnt], top);
-	//			int size = 0;
+				int size = 0;
 				for (int partition : partitions) {
-	//				size += indexes.get(partition).size();
 					for (int idx = 0; idx < indexes.get(partition).size(); idx ++) {
 						int i = indexes.get(partition).get(idx);
 						if (ids[i] > topic.getQueryTweetTime()) {
 							continue;
 						}
+						size ++;
 						float score = 0.0F;
 						for (int t = 0; t < c; t++) {
 							float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
@@ -386,7 +387,6 @@ public class RunQueries {
 						}
 					}
 				}
-	//			out.println(size);
 				int count = 1;
 				for (PairOfIntFloat pair : topN.extractAll()) {
 					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
@@ -394,7 +394,9 @@ public class RunQueries {
 					count ++;
 				}
 				topicCnt ++;
+				totalSize += size;
 			}
+			LOG.info(top + "\t" + (totalSize / topicCnt));
 			bw.close();
 		}
 	}
@@ -415,7 +417,7 @@ public class RunQueries {
 	}
 
 	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
-		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>();
+		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>(new ScoreComparator());
 		// Euclidean distance
 //		for(int i = 0; i < centers.length; i ++){
 //			double distance = 0;
