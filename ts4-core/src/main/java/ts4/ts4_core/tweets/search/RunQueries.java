@@ -416,13 +416,29 @@ public class RunQueries {
 
 	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
 		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>();
-		for(int i = 0; i < centers.length; i ++){
-			double distance = 0;
+		// Euclidean distance
+//		for(int i = 0; i < centers.length; i ++){
+//			double distance = 0;
+//			for (int j = 0; j < queryVector.length; j ++) {
+//				distance += (centers[i][j] - queryVector[j]) * (centers[i][j] - queryVector[j]);
+//			}
+//			all.put(distance, i);
+//		}
+		// Cosine similarity
+		for (int i = 0; i < centers.length; i ++) {
+			double similarity = 0;
+			double centerLength = 0;
+			double queryLength = 0;
+			double sum = 0;
 			for (int j = 0; j < queryVector.length; j ++) {
-				distance += (centers[i][j] - queryVector[j]) * (centers[i][j] - queryVector[j]);
+				centerLength += centers[i][j] * centers[i][j];
+				queryLength += queryVector[j] * queryVector[j];
+				sum += centers[i][j] * queryVector[j];
 			}
-			all.put(distance, i);
+			similarity = sum / (Math.sqrt(centerLength) * Math.sqrt(queryLength));
+			all.put(similarity, i);
 		}
+		
 		int[] result = new int[top];
 		int count = 0;
 		for (Entry<Double, Integer> entry : all.entrySet()) {
