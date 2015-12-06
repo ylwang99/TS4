@@ -425,7 +425,7 @@ public class RunQueriesDaily {
 		}
 		
 		float totalSize = 0;
-		LOG.info("top n\tavg scan size");
+		System.out.println("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
 			BufferedWriter bw = null;
 			if (cmdline.hasOption(DAYS_OPTION)) {
@@ -514,7 +514,7 @@ public class RunQueriesDaily {
 				topicCnt ++;
 				totalSize += size;
 			}
-			LOG.info(top + "\t" + (totalSize / topicCnt));
+			System.out.println(top + "\t" + (totalSize / topicCnt));
 			bw.close();
 		}
 	}

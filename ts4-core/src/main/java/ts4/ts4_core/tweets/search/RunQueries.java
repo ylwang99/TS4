@@ -346,7 +346,7 @@ public class RunQueries {
 		}
 
 		float totalSize = 0;
-		LOG.info("top n\tavg scan size");
+		System.out.println("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_all_top" + top + ".txt")));
 			int topicCnt = 0;
@@ -396,7 +396,7 @@ public class RunQueries {
 				topicCnt ++;
 				totalSize += size;
 			}
-			LOG.info(top + "\t" + (totalSize / topicCnt));
+			System.out.println(top + "\t" + (totalSize / topicCnt));
 			bw.close();
 		}
 	}
