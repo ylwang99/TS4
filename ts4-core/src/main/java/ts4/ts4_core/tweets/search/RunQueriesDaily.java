@@ -280,7 +280,7 @@ public class RunQueriesDaily {
 			}
 			try {
 //				File[] files = new File(clusterPath + "/clustercenters-2011-day" + i).listFiles();
-				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-day" + i).listFiles();
+				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -303,7 +303,7 @@ public class RunQueriesDaily {
 			}
 			try {
 //				File[] files = new File(clusterPath + "/clusterassign-2011-day" + i).listFiles();
-				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-day" + i).listFiles();
+				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
