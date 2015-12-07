@@ -424,9 +424,9 @@ public class RunQueriesDaily_test {
             System.out.println("File not found");
 		}
 		
-		float totalSize = 0;
 		System.out.println("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
+			float totalSize = 0;
 			BufferedWriter bw = null;
 			if (cmdline.hasOption(DAYS_OPTION)) {
 				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + ".txt")));

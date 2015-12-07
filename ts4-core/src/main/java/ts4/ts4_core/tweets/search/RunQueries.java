@@ -345,9 +345,9 @@ public class RunQueries {
             System.out.println("File not found");
 		}
 
-		float totalSize = 0;
 		System.out.println("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
+			float totalSize = 0;
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_all_top" + top + ".txt")));
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
