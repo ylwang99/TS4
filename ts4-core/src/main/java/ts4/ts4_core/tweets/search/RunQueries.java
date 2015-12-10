@@ -347,7 +347,7 @@ public class RunQueries {
 
 		System.out.println("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
-			float totalSize = 0;
+			float avgperctg = 0.0f;
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_all_top" + top + ".txt")));
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
@@ -363,14 +363,23 @@ public class RunQueries {
 				}
 				
 				int[] partitions = determinePartition(centers, queryVector[topicCnt], top);
-				int size = 0;
+				int totalSize = 0;
+				for (int i = 0; i < partitionNum; i ++) {
+					for (int j = 0; j < indexes.get(i).size(); j ++) {
+						if (ids[indexes.get(i).get(j)] > topic.getQueryTweetTime()) {
+							continue;
+						}
+						totalSize ++;
+					}
+				}
+				int selectedSize = 0;
 				for (int partition : partitions) {
 					for (int idx = 0; idx < indexes.get(partition).size(); idx ++) {
 						int i = indexes.get(partition).get(idx);
 						if (ids[i] > topic.getQueryTweetTime()) {
 							continue;
 						}
-						size ++;
+						selectedSize ++;
 						float score = 0.0F;
 						for (int t = 0; t < c; t++) {
 							float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
@@ -394,9 +403,9 @@ public class RunQueries {
 					count ++;
 				}
 				topicCnt ++;
-				totalSize += size;
+				avgperctg += (float)(selectedSize) / totalSize;
 			}
-			System.out.println(top + "\t" + (totalSize / topicCnt));
+			System.out.println(top + "\t" + (avgperctg / topicCnt));
 			bw.close();
 		}
 	}

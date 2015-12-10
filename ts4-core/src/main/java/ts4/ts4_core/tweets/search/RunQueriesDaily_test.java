@@ -426,7 +426,7 @@ public class RunQueriesDaily_test {
 		
 		System.out.println("top n\tavg scan size");
 		for (top = 1; top <= partitionNum; top ++) {
-			float totalSize = 0;
+			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
 			if (cmdline.hasOption(DAYS_OPTION)) {
 				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + ".txt")));
@@ -446,7 +446,28 @@ public class RunQueriesDaily_test {
 					c++;
 				}
 				
-				int size = 0;
+				int totalSize = 0;
+				for (int day = 1; day <= days[topicCnt]; day ++) {
+					for (int i = 0; i < partitionNum; i ++) {
+						for (int j = 0; j < indexes_days.get(day - 1).get(i).size(); j ++) {
+							if (ids[indexes_days.get(day - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							totalSize ++;
+						}
+					}
+				}
+				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * DAYS; hour ++) {
+					for (int i = 0; i < partitionNum; i ++) {
+						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
+							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							totalSize ++;
+						}
+					}
+				}
+				int selectedSize = 0;
 				for (int day = 1; day <= days[topicCnt]; day ++) {
 					int[] partitions = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], top);
 //					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
@@ -458,7 +479,7 @@ public class RunQueriesDaily_test {
 							if (ids[i] > topic.getQueryTweetTime()) {
 								continue;
 							}
-							size ++;
+							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
 								float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
@@ -487,7 +508,7 @@ public class RunQueriesDaily_test {
 							if (ids[i] > topic.getQueryTweetTime()) {
 								continue;
 							}
-							size ++;
+							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
 								float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
@@ -512,9 +533,9 @@ public class RunQueriesDaily_test {
 					count ++;
 				}
 				topicCnt ++;
-				totalSize += size;
+				avgperctg += (float)(selectedSize) / totalSize;
 			}
-			System.out.println(top + "\t" + (totalSize / topicCnt));
+			System.out.println(top + "\t" + (avgperctg / topicCnt));
 			bw.close();
 		}
 	}
