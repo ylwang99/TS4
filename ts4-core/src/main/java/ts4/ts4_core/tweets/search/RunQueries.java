@@ -362,7 +362,6 @@ public class RunQueries {
 					c++;
 				}
 				
-				int[] partitions = determinePartition(centers, queryVector[topicCnt], top);
 				int totalSize = 0;
 				for (int i = 0; i < partitionNum; i ++) {
 					for (int j = 0; j < indexes.get(i).size(); j ++) {
@@ -372,6 +371,7 @@ public class RunQueries {
 						totalSize ++;
 					}
 				}
+				int[] partitions = determinePartition(centers, queryVector[topicCnt], top);
 				int selectedSize = 0;
 				for (int partition : partitions) {
 					for (int idx = 0; idx < indexes.get(partition).size(); idx ++) {
