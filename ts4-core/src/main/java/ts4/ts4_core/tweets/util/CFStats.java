@@ -1,8 +1,11 @@
 package ts4.ts4_core.tweets.util;
 
+import java.io.Serializable;
+
 import edu.umd.cloud9.util.map.HMapKI;
 
-public class CFStats {
+@SuppressWarnings("serial")
+public class CFStats implements Serializable {
 	private HMapKI<String> cf2Freq; 
 	private int totalTerm;
 	
