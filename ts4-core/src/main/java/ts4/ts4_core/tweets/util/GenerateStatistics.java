@@ -6,10 +6,13 @@ package ts4.ts4_core.tweets.util;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -33,6 +36,7 @@ import cc.twittertools.index.TweetAnalyzer;
 import com.google.common.collect.Lists;
 
 import edu.umd.cloud9.util.map.HMapII;
+import edu.umd.cloud9.util.map.HMapKI;
 
 public class GenerateStatistics {
 	public static int NUM_DOCS = 16141812;
@@ -88,6 +92,7 @@ public class GenerateStatistics {
 		if (!new File(outputPath).exists()) {
 			new File(outputPath).mkdir();
 		}
+		new File(outputPath + "/cf").mkdir();
 		
 		LOG.info("Reading term statistics.");
 		TermStatistics termStats = new TermStatistics(indexPath, NUM_DOCS);
@@ -110,6 +115,17 @@ public class GenerateStatistics {
 
 		LOG.info("Finished writing cf_table.");
 
+		ObjectOutputStream oos_cf_hour = null;
+		ObjectOutputStream oos_cf_day = null;
+		CFStats cfstats_hour = new CFStats();
+		CFStats cfstats_day = new CFStats();
+		HMapKI<String> cf2Freq_hour = new HMapKI<String>(); 
+		HMapKI<String> cf2Freq_day = new HMapKI<String>();
+		int totalTerm_hour = 0;
+		int totalTerm_day = 0;
+		int hour_idx = 1;
+		int day_idx = 1;
+		String prev = "";
 		int cnt = 0;
 		Status status;
 		while ((status = stream.next()) != null) {
@@ -135,6 +151,10 @@ public class GenerateStatistics {
 					docTermFreq.put(termId, 1);
 					docVector.put(termId, termStats.getDf(termId));
 				}
+				cf2Freq_hour.increment(term);
+				cf2Freq_day.increment(term);
+				totalTerm_hour ++;
+				totalTerm_day ++;
 			}
 			bw_length_ordered.write(String.valueOf(docVector.size()));
 			bw_length_ordered.newLine();
@@ -146,12 +166,46 @@ public class GenerateStatistics {
 				bw_tf.write(String.valueOf(docTermFreq.get(key)));
 				bw_tf.newLine();
 			}	
-
+			
+			String createdAt = status.getCreatedAt();
+			String createdHour = createdAt.split(":")[0];
+			if (!createdHour.equals(prev)) {
+				if (!prev.equals("")) {
+					cfstats_hour.setCf(cf2Freq_hour);
+					cfstats_hour.setTotalTermCnt(totalTerm_hour);
+					oos_cf_hour = new ObjectOutputStream(new FileOutputStream(outputPath + "/cf/hour" + hour_idx));
+					oos_cf_hour.writeObject(cfstats_hour);
+					hour_idx ++;
+					cf2Freq_hour = new HMapKI<String>();
+					totalTerm_hour = 0;
+					String[] createdHourArr = createdHour.split(" ");
+					String hour = createdHourArr[3];
+					if (hour.equals("00")) {
+						cfstats_day.setCf(cf2Freq_day);
+						cfstats_day.setTotalTermCnt(totalTerm_day);
+						oos_cf_day = new ObjectOutputStream(new FileOutputStream(outputPath + "/cf/day" + day_idx));
+						oos_cf_day.writeObject(cfstats_day);
+						day_idx ++;
+						cf2Freq_day = new HMapKI<String>();
+						totalTerm_day = 0;
+					}
+				}
+				prev = createdHour;
+			}
+			
 			cnt++;
 			if (cnt % 100000 == 0) {
 				LOG.info(cnt + " processed");
 			}
 		}
+		cfstats_hour.setCf(cf2Freq_hour);
+		cfstats_hour.setTotalTermCnt(totalTerm_hour);
+		oos_cf_hour = new ObjectOutputStream(new FileOutputStream(outputPath + "/cf/hour" + hour_idx));
+		oos_cf_hour.writeObject(cfstats_hour);
+		cfstats_day.setCf(cf2Freq_day);
+		cfstats_day.setTotalTermCnt(totalTerm_day);
+		oos_cf_day = new ObjectOutputStream(new FileOutputStream(outputPath + "/cf/day" + day_idx));
+		oos_cf_day.writeObject(cfstats_day);
 		LOG.info("Total " + cnt + " processed");
 
 		stream.close();
@@ -161,6 +215,8 @@ public class GenerateStatistics {
 		bw_term_ordered.close();
 		bw_tf.close();
 		bw_length_ordered.close();
+		oos_cf_hour.close();
+		oos_cf_day.close();
 	}
 
 	public static List<String> parse(Analyzer analyzer, String s) throws IOException {
