@@ -108,20 +108,6 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_test</mainClass>
-              <name>RunQueriesDaily_test</name>
-              <jvmSettings>
-                <maxMemorySize>128g</maxMemorySize>
-              </jvmSettings>
-            </program>
-            <program>
-              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_Deprecated</mainClass>
-              <name>RunQueriesDaily_Deprecated</name>
-              <jvmSettings>
-                <maxMemorySize>128g</maxMemorySize>
-              </jvmSettings>
-            </program>
-            <program>
               <mainClass>ts4.ts4_core.tweets.search.RunQueriesOnTweetVec</mainClass>
               <name>RunQueriesOnTweetVec</name>
               <jvmSettings>

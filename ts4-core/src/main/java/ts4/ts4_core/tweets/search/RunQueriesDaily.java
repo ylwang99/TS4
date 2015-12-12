@@ -1,6 +1,6 @@
 /* Run queries on kmeans results daily
  * Run: sh target/appassembler/bin/RunQueriesDaily -index {indexPath} -stats {statsPath} -clusters {clustersPath}
- * 		[-days {dayFile}] -dimension {dimension} -partition {partitionNum} -top {N}
+ * 		-dayhours {dayFile} [-hourly] -dimension {dimension} -partition {partitionNum} -top {N}
  * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath}
  */
 package ts4.ts4_core.tweets.search;
@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.FileInputStream;
@@ -54,7 +55,8 @@ public class RunQueriesDaily {
 	private static final String DIMENSION = "dimension";
 	private static final String PARTITION = "partition";
 	private static final String CLUSTER_OPTION = "clusters";
-	private static final String DAYS_OPTION = "days";
+	private static final String DAYHOURS_OPTION = "dayhours";
+	private static final String HOURS_OPTION = "hourly";
 	private static final String TOP = "top";
 	private static final String QUERIES_OPTION = "queries";
 	private static final String QUERIES_VECTOR_OPTION = "queriesvector";
@@ -78,7 +80,9 @@ public class RunQueriesDaily {
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("partition").create(PARTITION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
-				.withDescription("days file").create(DAYS_OPTION));
+				.withDescription("dayhours file").create(DAYHOURS_OPTION));
+		options.addOption(OptionBuilder.withArgName("file").hasArg()
+				.withDescription("whether hourly").create(HOURS_OPTION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("top k").create(TOP));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
@@ -97,7 +101,7 @@ public class RunQueriesDaily {
 			System.exit(-1);
 		}
 
-		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
+		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(RunQueriesDaily.class.getName(), options);
 			System.exit(-1);
@@ -119,12 +123,12 @@ public class RunQueriesDaily {
 			System.err.println("Error: " + indexLocation + " does not exist!");
 			System.exit(-1);
 		}
-		LOG.info("Reading term statistics from index.");
+//		LOG.info("Reading term statistics from index.");
 		TermStatistics termStats = new TermStatistics(indexPath, GenerateStatistics.NUM_DOCS);
-		LOG.info("Finished reading term statistics from index.");
+//		LOG.info("Finished reading term statistics from index.");
 
 		// Read in stats
-		LOG.info("Reading term statistics from file.");
+//		LOG.info("Reading term statistics from file.");
 		int totalTerms = 0;
 		int numDoc = 0;
 		try {
@@ -265,10 +269,30 @@ public class RunQueriesDaily {
 		for (int i = 1; i < numDoc; i ++) {
 			offsets[i] = offsets[i - 1] + docLengthOrdered[i - 1];
 		}
-		LOG.info("Finished reading term statistics from file.");
+		List<CFStats> cf_days = new ArrayList<CFStats>();
+		List<CFStats> cf_hours = new ArrayList<CFStats>();
+		ObjectInputStream ois = null;
+		try {
+			File[] files = new File(statsPath + "/cf").listFiles();
+			Arrays.sort(files);
+			for (File file : files) {
+				if (file.getName().startsWith("day")) {
+					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
+					cf_days.add(Integer.parseInt(file.getName().substring(3)) - 1, (CFStats) ois.readObject());
+				}
+				if (file.getName().startsWith("hour")) {
+					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
+					cf_hours.add(Integer.parseInt(file.getName().substring(4)) - 1, (CFStats) ois.readObject());
+				}
+			}
+		} catch(Exception e){
+            System.out.println("File not found");
+		}
+		ois.close();
+//		LOG.info("Finished reading term statistics from file.");
 		
 		// Read in cluster centers and assignments
-		LOG.info("Reading cluster centers and assignments from file.");
+//		LOG.info("Reading cluster centers and assignments from file.");
 		List<double[][]> centers_days = new ArrayList<double[][]>();
 		List<List<List<Integer>>> indexes_days = new ArrayList<List<List<Integer>>>();
 		for (int i = 1; i <= DAYS; i ++) {
@@ -279,7 +303,6 @@ public class RunQueriesDaily {
 				indexes_days.get(indexes_days.size() - 1).add(new ArrayList<Integer>());
 			}
 			try {
-//				File[] files = new File(clusterPath + "/clustercenters-2011-day" + i).listFiles();
 				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
@@ -302,7 +325,6 @@ public class RunQueriesDaily {
 	            System.out.println("File not found");
 			}
 			try {
-//				File[] files = new File(clusterPath + "/clusterassign-2011-day" + i).listFiles();
 				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
@@ -331,8 +353,7 @@ public class RunQueriesDaily {
 				indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
 			}
 			try {
-//				File[] files = new File(clusterPath + "/clustercenters-2011-hour" + i).listFiles();
-				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-hour" + i).listFiles();
+				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-hour" + i + "-2011").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -354,8 +375,7 @@ public class RunQueriesDaily {
 	            System.out.println("File not found");
 			}
 			try {
-//				File[] files = new File(clusterPath + "/clusterassign-2011-hour" + i).listFiles();
-				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-hour" + i).listFiles();
+				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-hour" + i + "-2011").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -373,39 +393,44 @@ public class RunQueriesDaily {
 	            System.out.println("File not found");
 			}
 		}
-		LOG.info("Finished reading cluster centers and assignments from file.");
+//		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
 		int topicTotal = 0;
 		for ( @SuppressWarnings("unused") TrecTopic topic : topics ) {
 			topicTotal ++;
 		}
-		// Read in days File
+		// Read in dayhours File
 		int[] days = new int[topicTotal];
-		if (cmdline.hasOption(DAYS_OPTION)) {
-			int c = 0;
-			String daysPath = cmdline.getOptionValue(DAYS_OPTION);
-			try {
-				FileInputStream fis = new FileInputStream(daysPath);
-				BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-				String line;
-				while((line = br.readLine()) != null) {
-					days[c ++] = Integer.parseInt(line);
+		int[] hours = new int[topicTotal];
+		int cnt = 0;
+		String dayhoursPath = cmdline.getOptionValue(DAYHOURS_OPTION);
+		try {
+			FileInputStream fis = new FileInputStream(dayhoursPath);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			String line;
+			while((line = br.readLine()) != null) {
+				String[] tokens = line.split(" ");
+				if (cmdline.hasOption(HOURS_OPTION)) {
+					days[cnt ++] = Integer.parseInt(tokens[0]);
+					hours[cnt ++] = Integer.parseInt(tokens[1]);
+				} else {
+					hours[cnt ++] = 24 * Integer.parseInt(tokens[0]) + Integer.parseInt(tokens[1]);
 				}
-				try {
-					fis.close();
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e1) {
-				e1.printStackTrace();
 			}
+			try {
+				fis.close();
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 		
-		LOG.info("Running queries.");
+//		LOG.info("Running queries.");
 //		PrintStream out = new PrintStream(System.out, true, "UTF-8");
 		double[][] queryVector = new double[topicTotal][dimension];
 		int ind = 0;
@@ -424,25 +449,23 @@ public class RunQueriesDaily {
             System.out.println("File not found");
 		}
 		
-		System.out.println("top n\tavg scan size");
+//		System.out.println("top n\tavg scan size percentage");
 		for (top = 1; top <= partitionNum; top ++) {
 			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
-			if (cmdline.hasOption(DAYS_OPTION)) {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + ".txt")));
-			} else {
+			if (cmdline.hasOption(HOURS_OPTION)) {
 				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + ".txt")));
+			} else {
+				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + ".txt")));
 			}
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
 				List<String> queryterms = parse(ANALYZER, topic.getQuery());
 				TopNScoredInts topN = new TopNScoredInts(numResults);
 				int[] qids = new int[queryterms.size()];
-				float[] freqs = new float[queryterms.size()];
 				int c = 0;
 				for (String term : queryterms) {
 					qids[c] = termStats.getId(term);
-					freqs[c] = termStats.getFreq(termStats.getId(term));
 					c++;
 				}
 				
@@ -457,7 +480,7 @@ public class RunQueriesDaily {
 						}
 					}
 				}
-				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * DAYS; hour ++) {
+				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
 					for (int i = 0; i < partitionNum; i ++) {
 						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
 							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
@@ -482,7 +505,7 @@ public class RunQueriesDaily {
 							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
-								float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
+								float prob = (cf_days.get(day - 1).getFreq(queryterms.get(t)) + 1) / (cf_days.get(day - 1).getTotalTermCnt() + 1);
 								for (int j = 0; j < docLengthOrdered[i]; j ++) {
 									if (terms[offsets[i] + j] == qids[t]) {
 										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
@@ -497,7 +520,7 @@ public class RunQueriesDaily {
 						}
 					}
 				}
-				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * DAYS; hour ++) {
+				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt] - 1; hour ++) {
 					int[] partitions = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], top);
 //					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
 //					for (int topNum = 0; topNum < top; topNum ++) {
@@ -511,7 +534,7 @@ public class RunQueriesDaily {
 							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
-								float prob = (freqs[t] + 1) / (GenerateStatistics.TOTAL_TERMS + 1);
+								float prob = (cf_hours.get(hour - 1).getFreq(queryterms.get(t)) + 1) / (cf_hours.get(hour - 1).getTotalTermCnt() + 1);
 								for (int j = 0; j < docLengthOrdered[i]; j ++) {
 									if (terms[offsets[i] + j] == qids[t]) {
 										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
@@ -526,6 +549,31 @@ public class RunQueriesDaily {
 						}
 					}
 				}
+				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
+				for (int partition = 0; partition < partitionNum; partition ++) {
+					for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
+						int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
+						if (ids[i] > topic.getQueryTweetTime()) {
+							continue;
+						}
+						selectedSize ++;
+						float score = 0.0F;
+						for (int t = 0; t < c; t++) {
+							float prob = (cf_hours.get(finalHour - 2).getFreq(queryterms.get(t)) + 1) / (cf_hours.get(finalHour - 2).getTotalTermCnt() + 1);
+							for (int j = 0; j < docLengthOrdered[i]; j ++) {
+								if (terms[offsets[i] + j] == qids[t]) {
+									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+									score += Math.log(mu / (docLengthEncoded[i] + mu));
+									break;
+								}
+							}
+						}
+						if (score > 0) {
+							topN.add(i, score);
+						}
+					}
+				}
+				
 				int count = 1;
 				for (PairOfIntFloat pair : topN.extractAll()) {
 					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
