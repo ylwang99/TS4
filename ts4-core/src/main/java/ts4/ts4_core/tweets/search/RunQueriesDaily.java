@@ -1,6 +1,6 @@
 /* Run queries on kmeans results daily
  * Run: sh target/appassembler/bin/RunQueriesDaily -index {indexPath} -stats {statsPath} -clusters {clustersPath}
- * 		-dayhours {dayFile} [-hourly] -dimension {dimension} -partition {partitionNum} -top {N}
+ * 		-dayhours {dayFile} [-hourly true] -dimension {dimension} -partition {partitionNum} -top {N}
  * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath}
  */
 package ts4.ts4_core.tweets.search;
@@ -269,8 +269,8 @@ public class RunQueriesDaily {
 		for (int i = 1; i < numDoc; i ++) {
 			offsets[i] = offsets[i - 1] + docLengthOrdered[i - 1];
 		}
-		List<CFStats> cf_days = new ArrayList<CFStats>();
-		List<CFStats> cf_hours = new ArrayList<CFStats>();
+		CFStats[] cf_days = new CFStats[DAYS];
+		CFStats[] cf_hours = new CFStats[24 * DAYS];
 		ObjectInputStream ois = null;
 		try {
 			File[] files = new File(statsPath + "/cf").listFiles();
@@ -278,11 +278,11 @@ public class RunQueriesDaily {
 			for (File file : files) {
 				if (file.getName().startsWith("day")) {
 					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
-					cf_days.add(Integer.parseInt(file.getName().substring(3)) - 1, (CFStats) ois.readObject());
+					cf_days[Integer.parseInt(file.getName().substring(3)) - 1] = (CFStats) ois.readObject();
 				}
 				if (file.getName().startsWith("hour")) {
 					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
-					cf_hours.add(Integer.parseInt(file.getName().substring(4)) - 1, (CFStats) ois.readObject());
+					cf_hours[Integer.parseInt(file.getName().substring(4)) - 1] = (CFStats) ois.readObject();
 				}
 			}
 		} catch(Exception e){
@@ -505,7 +505,7 @@ public class RunQueriesDaily {
 							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
-								float prob = (cf_days.get(day - 1).getFreq(queryterms.get(t)) + 1) / (cf_days.get(day - 1).getTotalTermCnt() + 1);
+								float prob = (cf_days[day - 1].getFreq(queryterms.get(t)) + 1) / (cf_days[day - 1].getTotalTermCnt() + 1);
 								for (int j = 0; j < docLengthOrdered[i]; j ++) {
 									if (terms[offsets[i] + j] == qids[t]) {
 										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
@@ -534,7 +534,7 @@ public class RunQueriesDaily {
 							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
-								float prob = (cf_hours.get(hour - 1).getFreq(queryterms.get(t)) + 1) / (cf_hours.get(hour - 1).getTotalTermCnt() + 1);
+								float prob = (cf_hours[hour - 1].getFreq(queryterms.get(t)) + 1) / (cf_hours[hour - 1].getTotalTermCnt() + 1);
 								for (int j = 0; j < docLengthOrdered[i]; j ++) {
 									if (terms[offsets[i] + j] == qids[t]) {
 										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
@@ -559,7 +559,7 @@ public class RunQueriesDaily {
 						selectedSize ++;
 						float score = 0.0F;
 						for (int t = 0; t < c; t++) {
-							float prob = (cf_hours.get(finalHour - 2).getFreq(queryterms.get(t)) + 1) / (cf_hours.get(finalHour - 2).getTotalTermCnt() + 1);
+							float prob = (cf_hours[finalHour - 2].getFreq(queryterms.get(t)) + 1) / (cf_hours[finalHour - 2].getTotalTermCnt() + 1);
 							for (int j = 0; j < docLengthOrdered[i]; j ++) {
 								if (terms[offsets[i] + j] == qids[t]) {
 									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
