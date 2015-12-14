@@ -505,7 +505,7 @@ public class RunQueriesDaily {
 							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
-								float prob = (cf_days[day - 1].getFreq(queryterms.get(t)) + 1) / (cf_days[day - 1].getTotalTermCnt() + 1);
+								float prob = (float)(cf_days[day - 1].getFreq(queryterms.get(t)) + 1) / (cf_days[day - 1].getTotalTermCnt() + 1);
 								for (int j = 0; j < docLengthOrdered[i]; j ++) {
 									if (terms[offsets[i] + j] == qids[t]) {
 										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
@@ -534,7 +534,7 @@ public class RunQueriesDaily {
 							selectedSize ++;
 							float score = 0.0F;
 							for (int t = 0; t < c; t++) {
-								float prob = (cf_hours[hour - 1].getFreq(queryterms.get(t)) + 1) / (cf_hours[hour - 1].getTotalTermCnt() + 1);
+								float prob = (float)(cf_hours[hour - 1].getFreq(queryterms.get(t)) + 1) / (cf_hours[hour - 1].getTotalTermCnt() + 1);
 								for (int j = 0; j < docLengthOrdered[i]; j ++) {
 									if (terms[offsets[i] + j] == qids[t]) {
 										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
@@ -559,7 +559,7 @@ public class RunQueriesDaily {
 						selectedSize ++;
 						float score = 0.0F;
 						for (int t = 0; t < c; t++) {
-							float prob = (cf_hours[finalHour - 2].getFreq(queryterms.get(t)) + 1) / (cf_hours[finalHour - 2].getTotalTermCnt() + 1);
+							float prob = (float)(cf_hours[finalHour - 2].getFreq(queryterms.get(t)) + 1) / (cf_hours[finalHour - 2].getTotalTermCnt() + 1);
 							for (int j = 0; j < docLengthOrdered[i]; j ++) {
 								if (terms[offsets[i] + j] == qids[t]) {
 									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
