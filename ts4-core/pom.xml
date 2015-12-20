@@ -73,6 +73,13 @@
               </jvmSettings>
             </program>
             <program>
+              <mainClass>ts4.ts4_core.tweets.util.GenerateStatistics_CFPerQuery</mainClass>
+              <name>GenerateStatistics_CFPerQuery</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
               <mainClass>ts4.ts4_core.selectivesearch.GenInput4Glove</mainClass>
               <name>GenInput4Glove</name>
               <jvmSettings>
@@ -103,6 +110,13 @@
             <program>
               <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily</mainClass>
               <name>RunQueriesDaily</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_CFPerQuery</mainClass>
+              <name>RunQueriesDaily_CFPerQuery</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
