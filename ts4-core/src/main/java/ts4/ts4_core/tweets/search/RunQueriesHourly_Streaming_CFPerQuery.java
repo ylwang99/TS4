@@ -1,5 +1,5 @@
-/* Run queries on kmeans results daily with cf up till the query time
- * Run: sh target/appassembler/bin/RunQueriesDaily_CFPerQuery -index {indexPath} -stats {statsPath} -clusters {clustersPath}
+/* Run queries on streaming kmeans results hourly with cf up till the query time
+ * Run: sh target/appassembler/bin/RunQueriesHourly_Streaming_CFPerQuery -index {indexPath} -stats {statsPath} -clusters {clustersPath}
  * 		-dayhours {dayFile} [-hourly true] -dimension {dimension} -partition {partitionNum} -top {N}
  * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath}
  */
@@ -45,18 +45,17 @@ import com.google.common.collect.Lists;
 import edu.umd.cloud9.io.pair.PairOfIntFloat;
 import edu.umd.cloud9.util.TopNScoredInts;
 
-public class RunQueriesDaily_CFPerQuery {
-	private static final Logger LOG = Logger.getLogger(RunQueriesDaily_CFPerQuery.class);
+public class RunQueriesHourly_Streaming_CFPerQuery {
+	private static final Logger LOG = Logger.getLogger(RunQueriesHourly_Streaming_CFPerQuery.class);
 	public static final Analyzer ANALYZER = new TweetAnalyzer(Version.LUCENE_43);
-	private static final int DAYS = 17;
 
 	private static final String INDEX_OPTION = "index";
 	private static final String STATS_OPTION = "stats";
 	private static final String DIMENSION = "dimension";
 	private static final String PARTITION = "partition";
+	private static final String DOCVECTORS = "docsvector";
 	private static final String CLUSTER_OPTION = "clusters";
 	private static final String DAYHOURS_OPTION = "dayhours";
-	private static final String HOURS_OPTION = "hourly";
 	private static final String TOP = "top";
 	private static final String QUERIES_OPTION = "queries";
 	private static final String QUERIES_VECTOR_OPTION = "queriesvector";
@@ -75,14 +74,14 @@ public class RunQueriesDaily_CFPerQuery {
 				.withDescription("statistics location").create(STATS_OPTION));
 		options.addOption(OptionBuilder.withArgName("path").hasArg()
 				.withDescription("cluster centers path").create(CLUSTER_OPTION));
+		options.addOption(OptionBuilder.withArgName("file").hasArg()
+				.withDescription("document vector").create(DOCVECTORS));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("dimension").create(DIMENSION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("partition").create(PARTITION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
 				.withDescription("dayhours file").create(DAYHOURS_OPTION));
-		options.addOption(OptionBuilder.withArgName("file").hasArg()
-				.withDescription("whether hourly").create(HOURS_OPTION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("top k").create(TOP));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
@@ -101,15 +100,16 @@ public class RunQueriesDaily_CFPerQuery {
 			System.exit(-1);
 		}
 
-		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
+		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DOCVECTORS) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp(RunQueriesDaily_CFPerQuery.class.getName(), options);
+			formatter.printHelp(RunQueriesHourly_Streaming_CFPerQuery.class.getName(), options);
 			System.exit(-1);
 		}
 
 		String indexPath = cmdline.getOptionValue(INDEX_OPTION);
 		String statsPath = cmdline.getOptionValue(STATS_OPTION);
 		String clusterPath = cmdline.getOptionValue(CLUSTER_OPTION);
+		String docVectorPath = cmdline.getOptionValue(DOCVECTORS); 
 		int dimension = Integer.parseInt(cmdline.getOptionValue(DIMENSION));
 		int partitionNum = Integer.parseInt(cmdline.getOptionValue(PARTITION));
 		int top = cmdline.hasOption(TOP) ? Integer.parseInt(cmdline.getOptionValue(TOP)) : 1;
@@ -271,108 +271,69 @@ public class RunQueriesDaily_CFPerQuery {
 		}
 //		LOG.info("Finished reading term statistics from file.");
 		
-		// Read in cluster centers and assignments
-//		LOG.info("Reading cluster centers and assignments from file.");
-		List<double[][]> centers_days = new ArrayList<double[][]>();
-		List<List<List<Integer>>> indexes_days = new ArrayList<List<List<Integer>>>();
-		for (int i = 1; i <= DAYS; i ++) {
-			int ind = 0;
-			centers_days.add(new double[partitionNum][dimension]);
-			indexes_days.add(new ArrayList<List<Integer>>());
-			for (int j = 0; j < partitionNum; j ++) {
-				indexes_days.get(indexes_days.size() - 1).add(new ArrayList<Integer>());
+		// Read in document vectors
+//		LOG.info("Reading document vectors.");
+		double[][] docVector = new double[numDoc][dimension];
+		try {
+			File[] files = new File(docVectorPath).listFiles();
+			Arrays.sort(files);
+			for (File file : files) {
+				BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
+                String line;
+                while((line = br.readLine()) != null) {
+    				String[] tokens = line.split(" ");
+    				for (int j = 1; j < tokens.length; j ++) {
+    					docVector[Integer.parseInt(tokens[0])][j - 1] = Double.parseDouble(tokens[j]);
+    				}
+    			}
+                br.close();
 			}
-			try {
-				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011").listFiles();
-				Arrays.sort(files);
-				for (File file : files) {
-					if (file.getName().startsWith("part")) {
-						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
-	                    String line;
-	                    while((line = br.readLine()) != null) {
-	                    	line = line.substring(1, line.length() - 1);
-	                    	int j = 0;
-	        				String[] vector = line.split(",");
-	        				for (String coor : vector) {
-	        					centers_days.get(centers_days.size() - 1)[ind][j ++] = Double.parseDouble(coor);
-	        				}
-	        				ind ++;
-	        			}
-	                    br.close();
-					}
-				}
-			} catch(Exception e){
-	            System.out.println("File not found");
-			}
-			try {
-				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011").listFiles();
-				Arrays.sort(files);
-				for (File file : files) {
-					if (file.getName().startsWith("part")) {
-						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
-	                    String line;
-	                    while((line = br.readLine()) != null) {
-	                    	line = line.substring(1, line.length() - 1);
-	                    	String[] indexmap = line.split(",");
-	                    	indexes_days.get(indexes_days.size() - 1).get(Integer.parseInt(indexmap[1])).add(Integer.parseInt(indexmap[0]));
-	        			}
-	                    br.close();
-					}
-				}
-			} catch(Exception e){
-	            System.out.println("File not found");
-			}
+		} catch(Exception e){
+            System.out.println("File not found");
 		}
+//		LOG.info("Finished reading document vectors.");
+		
+		// Read in cluster assignments
+//		LOG.info("Reading cluster centers and assignments from file.");
 		List<double[][]> centers_hours = new ArrayList<double[][]>();
 		List<List<List<Integer>>> indexes_hours = new ArrayList<List<List<Integer>>>();
-		for (int i = 1; i <= 24 * DAYS; i ++) {
-			int ind = 0;
-			centers_hours.add(new double[partitionNum][dimension]);
-			indexes_hours.add(new ArrayList<List<Integer>>());
-			for (int j = 0; j < partitionNum; j ++) {
-				indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
-			}
-			try {
-				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-hour" + i + "-2011").listFiles();
-				Arrays.sort(files);
-				for (File file : files) {
-					if (file.getName().startsWith("part")) {
-						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
-	                    String line;
-	                    while((line = br.readLine()) != null) {
-	                    	line = line.substring(1, line.length() - 1);
-	                    	int j = 0;
-	        				String[] vector = line.split(",");
-	        				for (String coor : vector) {
-	        					centers_hours.get(centers_hours.size() - 1)[ind][j ++] = Double.parseDouble(coor);
-	        				}
-	        				ind ++;
-	        			}
-	                    br.close();
-					}
-				}
-			} catch(Exception e){
-	            System.out.println("File not found");
-			}
-			try {
-				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-hour" + i + "-2011").listFiles();
-				Arrays.sort(files);
-				for (File file : files) {
-					if (file.getName().startsWith("part")) {
-						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
+		double[][] vectorSum = new double[partitionNum][dimension];
+		int docCntHours = 0;
+		try {
+			File[] files = new File(clusterPath).listFiles();
+			Arrays.sort(files);
+			for (File file : files) {
+				File[] subFiles = new File(file.getPath()).listFiles();
+				for (File subFile : subFiles) {
+					if (subFile.getName().startsWith("part")) {
+						centers_hours.add(new double[partitionNum][dimension]);
+						indexes_hours.add(new ArrayList<List<Integer>>());
+						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(subFile.getPath())));
 	                    String line;
 	                    while((line = br.readLine()) != null) {
 	                    	line = line.substring(1, line.length() - 1);
 	                    	String[] indexmap = line.split(",");
-	                    	indexes_hours.get(indexes_hours.size() - 1).get(Integer.parseInt(indexmap[1])).add(Integer.parseInt(indexmap[0]));
-	        			}
+	                    	int docidx = Integer.parseInt(indexmap[0]);
+	                    	int clusteridx = Integer.parseInt(indexmap[1]);
+	                    	indexes_hours.get(indexes_hours.size() - 1).get(clusteridx).add(docidx);
+	                    	for (int d = 0; d < dimension; d ++) {
+	                    		vectorSum[clusteridx][d] += docVector[docidx][d];
+	                    	}
+	                    	docCntHours ++;
+	                    }
+	                    for (int c = 0; c < partitionNum; c ++) {
+		                    for (int d = 0; d < dimension; d ++) {
+		                    	centers_hours.get(centers_hours.size() - 1)[c][d] = vectorSum[c][d] / docCntHours;
+		                    }
+	                    }
 	                    br.close();
 					}
 				}
-			} catch(Exception e){
-	            System.out.println("File not found");
 			}
+		} catch(Exception e){
+            System.out.println("File not found");
 		}
+		
 //		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
@@ -408,12 +369,8 @@ public class RunQueriesDaily_CFPerQuery {
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split(" ");
-				if (cmdline.hasOption(HOURS_OPTION)) {
-					days[cnt] = Integer.parseInt(tokens[0]);
-					hours[cnt ++] = Integer.parseInt(tokens[1]);
-				} else {
-					hours[cnt ++] = 24 * Integer.parseInt(tokens[0]) + Integer.parseInt(tokens[1]);
-				}
+				days[cnt] = Integer.parseInt(tokens[0]);
+				hours[cnt ++] = Integer.parseInt(tokens[1]);
 			}
 			try {
 				fis.close();
@@ -450,11 +407,7 @@ public class RunQueriesDaily_CFPerQuery {
 		for (top = 1; top <= partitionNum; top ++) {
 			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
-			if (cmdline.hasOption(HOURS_OPTION)) {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + ".txt")));
-			} else {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + ".txt")));
-			}
+			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + ".txt")));
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
 				List<String> queryterms = parse(ANALYZER, topic.getQuery());
@@ -467,17 +420,7 @@ public class RunQueriesDaily_CFPerQuery {
 				}
 				
 				int totalSize = 0;
-				for (int day = 1; day <= days[topicCnt]; day ++) {
-					for (int i = 0; i < partitionNum; i ++) {
-						for (int j = 0; j < indexes_days.get(day - 1).get(i).size(); j ++) {
-							if (ids[indexes_days.get(day - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							totalSize ++;
-						}
-					}
-				}
-				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
+				for (int hour = 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
 					for (int i = 0; i < partitionNum; i ++) {
 						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
 							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
@@ -488,41 +431,10 @@ public class RunQueriesDaily_CFPerQuery {
 					}
 				}
 				int selectedSize = 0;
-				for (int day = 1; day <= days[topicCnt]; day ++) {
-					int[] partitions = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], top);
-//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
-//					for (int topNum = 0; topNum < top; topNum ++) {
-					for (int partition : partitions) {
-//						int partition = partitions[topNum];
-						for (int idx = 0; idx < indexes_days.get(day - 1).get(partition).size(); idx ++) {
-							int i = indexes_days.get(day - 1).get(partition).get(idx);
-							if (ids[i] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							selectedSize ++;
-							float score = 0.0F;
-							for (int t = 0; t < c; t++) {
-								float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
-								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-									if (terms[offsets[i] + j] == qids[t]) {
-										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-										score += Math.log(mu / (docLengthEncoded[i] + mu));
-										break;
-									}
-								}
-							}
-							if (score > 0) {
-								topN.add(i, score);
-							}
-						}
-					}
-				}
-				for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt] - 1; hour ++) {
-					int[] partitions = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], top);
-//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
-//					for (int topNum = 0; topNum < top; topNum ++) {
-					for (int partition : partitions) {
-//						int partition = partitions[topNum];
+				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
+				int[] partitions = determinePartition(centers_hours.get(finalHour - 2), queryVector[topicCnt], top);
+				for (int partition : partitions) {
+					for (int hour = 1; hour <= finalHour - 1; hour ++) {
 						for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partition).size(); idx ++) {
 							int i = indexes_hours.get(hour - 1).get(partition).get(idx);
 							if (ids[i] > topic.getQueryTweetTime()) {
@@ -546,7 +458,6 @@ public class RunQueriesDaily_CFPerQuery {
 						}
 					}
 				}
-				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
 				for (int partition = 0; partition < partitionNum; partition ++) {
 					for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
 						int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);

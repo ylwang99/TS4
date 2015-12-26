@@ -1,5 +1,5 @@
 /* Generate statistics used for running queries
- * Run: sh target/appassembler/bin/GenerateStatistics -index {indexPath} -collection {collectionPath} -output {statisticsPath}
+ * Run: sh target/appassembler/bin/GenerateStatistics_CFPerQuery -index {indexPath} -collection {collectionPath} -queries {queryPath} -output {statisticsPath}
  */
 package ts4.ts4_core.tweets.util;
 
