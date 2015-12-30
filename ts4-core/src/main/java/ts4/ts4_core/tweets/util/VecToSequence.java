@@ -24,11 +24,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
+import org.apache.log4j.Logger;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.DenseVector;
 import org.apache.mahout.math.VectorWritable;
 
 public class VecToSequence {
+	private static final Logger LOG = Logger.getLogger(VecToSequence.class);
 	private static final String INPUT_OPTION = "input";
 	private static final String OUTPUT_OPTION = "output";
 
@@ -66,6 +68,7 @@ public class VecToSequence {
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
 		SequenceFile.Writer writer = null;
+		int cnt = 0;
 		for (File file : files) {
 			FileInputStream fis = new FileInputStream(input);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
@@ -81,6 +84,10 @@ public class VecToSequence {
 					vector.set(i - 1, Double.parseDouble(tokens[i]));
 				}
 				value.set(vector);
+				if (cnt % 100000 == 0) {
+					LOG.info(cnt + " processed.");
+				}
+				cnt ++;
 			}
 			try {
 				fis.close();
@@ -89,6 +96,7 @@ public class VecToSequence {
 				e.printStackTrace();
 			}
 		}
+		LOG.info("total " + cnt + " processed.");
 		IOUtils.closeStream(writer); 
 	}
 }
