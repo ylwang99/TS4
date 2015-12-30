@@ -101,7 +101,7 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.selectivesearch.VecToSequence</mainClass>
+              <mainClass>ts4.ts4_core.tweets.util.VecToSequence</mainClass>
               <name>VecToSequence</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
