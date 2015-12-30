@@ -74,7 +74,7 @@ public class VecToSequence {
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			IntWritable key = new IntWritable();
 			VectorWritable value = new VectorWritable();
-			SequenceFile.createWriter(fs, conf, new Path(outputPath + "/" + file.getName()), key.getClass(), value.getClass());
+			writer = SequenceFile.createWriter(fs, conf, new Path(outputPath + "/" + file.getName()), key.getClass(), value.getClass());
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split(" ");
@@ -84,6 +84,7 @@ public class VecToSequence {
 					vector.set(i - 1, Double.parseDouble(tokens[i]));
 				}
 				value.set(vector);
+				writer.append(key, value);
 				if (cnt % 100000 == 0) {
 					LOG.info(cnt + " processed.");
 				}
@@ -95,8 +96,8 @@ public class VecToSequence {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			IOUtils.closeStream(writer); 
 		}
 		LOG.info("total " + cnt + " processed.");
-		IOUtils.closeStream(writer); 
 	}
 }
