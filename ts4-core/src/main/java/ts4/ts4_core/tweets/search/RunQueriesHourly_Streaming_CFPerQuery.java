@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -299,6 +301,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		List<List<List<Integer>>> indexes_hours = new ArrayList<List<List<Integer>>>();
 		double[][] vectorSum = new double[partitionNum][dimension];
 		int docCntHours = 0;
+		Set<Integer> clusterindexes = new HashSet<Integer>();
 		try {
 			File[] files = new File(clusterPath).listFiles();
 			Arrays.sort(files);
@@ -308,13 +311,17 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 					if (subFile.getName().startsWith("part")) {
 						centers_hours.add(new double[partitionNum][dimension]);
 						indexes_hours.add(new ArrayList<List<Integer>>());
+						for (int j = 0; j < partitionNum; j ++) {
+							indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
+						}
 						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(subFile.getPath())));
 	                    String line;
 	                    while((line = br.readLine()) != null) {
 	                    	line = line.substring(1, line.length() - 1);
 	                    	String[] indexmap = line.split(",");
-	                    	int docidx = Integer.parseInt(indexmap[0]);
+	                    	int docidx = (int)(Float.parseFloat(indexmap[0]));
 	                    	int clusteridx = Integer.parseInt(indexmap[1]);
+	                    	clusterindexes.add(clusteridx);
 	                    	indexes_hours.get(indexes_hours.size() - 1).get(clusteridx).add(docidx);
 	                    	for (int d = 0; d < dimension; d ++) {
 	                    		vectorSum[clusteridx][d] += docVector[docidx][d];
@@ -432,7 +439,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 				}
 				int selectedSize = 0;
 				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
-				int[] partitions = determinePartition(centers_hours.get(finalHour - 2), queryVector[topicCnt], top);
+				int[] partitions = determinePartition(centers_hours.get(finalHour - 2), queryVector[topicCnt], top, clusterindexes);
 				for (int partition : partitions) {
 					for (int hour = 1; hour <= finalHour - 1; hour ++) {
 						for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partition).size(); idx ++) {
@@ -511,7 +518,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		return list;
 	}
 
-	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
+	public static int[] determinePartition(double[][] centers, double[] queryVector, int top, Set<Integer> clusterindexes) {
 //	public static int[] determinePartition(double[][] centers, double[] queryVector, int partition) {
 		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>(new ScoreComparator());
 		// Euclidean distance
@@ -524,7 +531,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 //		}
 		
 		// Cosine similarity
-		for (int i = 0; i < centers.length; i ++) {
+		for (int i : clusterindexes) {
 			double similarity = 0;
 			double centerLength = 0;
 			double queryLength = 0;
@@ -538,7 +545,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 			all.put(similarity, i);
 		}
 		
-		int[] result = new int[top];
+		int[] result = new int[all.size()];
 //		int[] result = new int[partition];
 		int count = 0;
 		for (Entry<Double, Integer> entry : all.entrySet()) {

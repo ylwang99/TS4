@@ -122,8 +122,8 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_Streaming_CFPerQuery</mainClass>
-              <name>RunQueriesDaily_Streaming_CFPerQuery</name>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueriesHourly_Streaming_CFPerQuery</mainClass>
+              <name>RunQueriesHourly_Streaming_CFPerQuery</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
@@ -157,6 +157,11 @@
 		<artifactId>hadoop-common</artifactId>
 		<version>2.2.0</version>
     </dependency>
+    <dependency>
+		<groupId>org.apache.mahout</groupId>
+		<artifactId>mahout-core</artifactId>
+		<version>0.9</version>
+	</dependency>
     <dependency>
 		<groupId>log4j</groupId>
 		<artifactId>log4j</artifactId>
