@@ -70,7 +70,7 @@ public class VecToSequence {
 		SequenceFile.Writer writer = null;
 		int cnt = 0;
 		for (File file : files) {
-			FileInputStream fis = new FileInputStream(input);
+			FileInputStream fis = new FileInputStream(file.getPath());
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			IntWritable key = new IntWritable();
 			VectorWritable value = new VectorWritable();
