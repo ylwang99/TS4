@@ -140,12 +140,12 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			System.err.println("Error: " + indexLocation + " does not exist!");
 			System.exit(-1);
 		}
-//		LOG.info("Reading term statistics from index.");
+		LOG.info("Reading term statistics from index.");
 		TermStatistics termStats = new TermStatistics(indexPath, GenerateStatistics.NUM_DOCS);
-//		LOG.info("Finished reading term statistics from index.");
+		LOG.info("Finished reading term statistics from index.");
 
 		// Read in stats
-//		LOG.info("Reading term statistics from file.");
+		LOG.info("Reading term statistics from file.");
 		int totalTerms = 0;
 		int numDoc = 0;
 		try {
@@ -286,10 +286,10 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		for (int i = 1; i < numDoc; i ++) {
 			offsets[i] = offsets[i - 1] + docLengthOrdered[i - 1];
 		}
-//		LOG.info("Finished reading term statistics from file.");
+		LOG.info("Finished reading term statistics from file.");
 		
 		// Read in document vectors
-//		LOG.info("Reading document vectors.");
+		LOG.info("Reading document vectors.");
 		List<List<double[]>> docVector = new ArrayList<List<double[]>>();;
 		int hour = 0;
 		for (int i = 0; i < DAYS * 24; i ++) {
@@ -315,10 +315,10 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		} catch(Exception e){
             System.out.println("File not found");
 		}
-//		LOG.info("Finished reading document vectors.");
+		LOG.info("Finished reading document vectors.");
 		
 		// Read in cluster centers and assignments
-//		LOG.info("Reading cluster centers and assignments from file.");
+		LOG.info("Reading cluster centers and assignments from file.");
 		List<double[][]> centers_days = new ArrayList<double[][]>();
 		List<List<List<Integer>>> indexes_days = new ArrayList<List<List<Integer>>>();
 		for (int i = 1; i <= DAYS; i ++) {
@@ -412,7 +412,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		} catch(Exception e){
             System.out.println("File not found");
 		}
-//		LOG.info("Finished reading cluster centers and assignments from file.");
+		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
 		int topicTotal = 0;
@@ -422,6 +422,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		
 		CFStats[] cf = new CFStats[topicTotal];
 		ObjectInputStream ois = null;
+		int queryCnt = 0;
 		try {
 			File[] files = new File(statsPath + "/cf/query/").listFiles();
 			Arrays.sort(files);
@@ -429,6 +430,8 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 				if (file.getName().startsWith("query")) {
 					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
 					cf[Integer.parseInt(file.getName().substring(5)) - 1] = (CFStats) ois.readObject();
+					queryCnt ++;
+					LOG.info("query " + queryCnt);
 				}
 			}
 		} catch(Exception e){
@@ -466,7 +469,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			e1.printStackTrace();
 		}
 		
-//		LOG.info("Running queries.");
+		LOG.info("Running queries.");
 //		PrintStream out = new PrintStream(System.out, true, "UTF-8");
 		double[][] queryVector = new double[topicTotal][dimension];
 		int ind = 0;
