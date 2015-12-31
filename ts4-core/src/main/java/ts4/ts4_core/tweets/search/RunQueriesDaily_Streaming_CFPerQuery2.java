@@ -1,6 +1,6 @@
-/* Run queries on streaming kmeans results hourly with cf up till the query time
- * Run: sh target/appassembler/bin/RunQueriesHourly_Streaming_CFPerQuery -index {indexPath} 
- * 		-stats {statsPath} -clusters {clustersPath} -docsvector {docVectorPath}
+/* Run queries on streaming kmeans results daily with cf up till the query time
+ * Run: sh target/appassembler/bin/RunQueriesDaily_Streaming_CFPerQuery -index {indexPath} 
+ * 		-stats {statsPath} -docsvector {docVectorPath} -dayclusters {dayclustersPath} -hourclusters {hourclustersPath}
  * 		-dayhours {dayFile} [-hourly true] -dimension {dimension} -partition {partitionNum} -top {N}
  * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath}
  */
@@ -18,12 +18,12 @@ import java.io.StringReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.Set;
-import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -32,11 +32,17 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
+import org.apache.mahout.clustering.streaming.mapreduce.CentroidWritable;
 
 import cc.twittertools.index.TweetAnalyzer;
 import cc.twittertools.search.TrecTopic;
@@ -48,23 +54,26 @@ import com.google.common.collect.Lists;
 import edu.umd.cloud9.io.pair.PairOfIntFloat;
 import edu.umd.cloud9.util.TopNScoredInts;
 
-public class RunQueriesHourly_Streaming_CFPerQuery {
-	private static final Logger LOG = Logger.getLogger(RunQueriesHourly_Streaming_CFPerQuery.class);
+public class RunQueriesDaily_Streaming_CFPerQuery2 {
+	private static final Logger LOG = Logger.getLogger(RunQueriesDaily_Streaming_CFPerQuery2.class);
 	public static final Analyzer ANALYZER = new TweetAnalyzer(Version.LUCENE_43);
+	private static final int DAYS = 17;
 
 	private static final String INDEX_OPTION = "index";
 	private static final String STATS_OPTION = "stats";
 	private static final String DIMENSION = "dimension";
 	private static final String PARTITION = "partition";
 	private static final String DOCVECTORS = "docsvector";
-	private static final String CLUSTER_OPTION = "clusters";
+	private static final String DAY_CLUSTER_OPTION = "dayclusters";
+	private static final String HOUR_CLUSTER_OPTION = "hourclusters";
 	private static final String DAYHOURS_OPTION = "dayhours";
+	private static final String HOURS_OPTION = "hourly";
 	private static final String TOP = "top";
 	private static final String QUERIES_OPTION = "queries";
 	private static final String QUERIES_VECTOR_OPTION = "queriesvector";
 	private static final String OUTPUT_OPTION = "output";
 
-	@SuppressWarnings({ "static-access" })
+	@SuppressWarnings({ "static-access", "deprecation" })
 	public static void main(String[] args) throws Exception {
 		float mu = 2500.0f;
 		int numResults = 1000;
@@ -75,16 +84,20 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 				.withDescription("index location").create(INDEX_OPTION));
 		options.addOption(OptionBuilder.withArgName("path").hasArg()
 				.withDescription("statistics location").create(STATS_OPTION));
-		options.addOption(OptionBuilder.withArgName("path").hasArg()
-				.withDescription("cluster centers path").create(CLUSTER_OPTION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
 				.withDescription("document vector").create(DOCVECTORS));
+		options.addOption(OptionBuilder.withArgName("path").hasArg()
+				.withDescription("daily cluster centers path").create(DAY_CLUSTER_OPTION));
+		options.addOption(OptionBuilder.withArgName("path").hasArg()
+				.withDescription("hourly cluster centers path").create(HOUR_CLUSTER_OPTION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("dimension").create(DIMENSION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("partition").create(PARTITION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
 				.withDescription("dayhours file").create(DAYHOURS_OPTION));
+		options.addOption(OptionBuilder.withArgName("file").hasArg()
+				.withDescription("whether hourly").create(HOURS_OPTION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
 				.withDescription("top k").create(TOP));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
@@ -103,16 +116,17 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 			System.exit(-1);
 		}
 
-		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DOCVECTORS) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
+		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(DOCVECTORS) || !cmdline.hasOption(DAY_CLUSTER_OPTION) || !cmdline.hasOption(HOUR_CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp(RunQueriesHourly_Streaming_CFPerQuery.class.getName(), options);
+			formatter.printHelp(RunQueriesDaily_Streaming_CFPerQuery2.class.getName(), options);
 			System.exit(-1);
 		}
 
 		String indexPath = cmdline.getOptionValue(INDEX_OPTION);
 		String statsPath = cmdline.getOptionValue(STATS_OPTION);
-		String clusterPath = cmdline.getOptionValue(CLUSTER_OPTION);
-		String docVectorPath = cmdline.getOptionValue(DOCVECTORS); 
+		String docVectorPath = cmdline.getOptionValue(DOCVECTORS);
+		String dayclusterPath = cmdline.getOptionValue(DAY_CLUSTER_OPTION);
+		String hourclusterPath = cmdline.getOptionValue(HOUR_CLUSTER_OPTION);
 		int dimension = Integer.parseInt(cmdline.getOptionValue(DIMENSION));
 		int partitionNum = Integer.parseInt(cmdline.getOptionValue(PARTITION));
 		int top = cmdline.hasOption(TOP) ? Integer.parseInt(cmdline.getOptionValue(TOP)) : 1;
@@ -276,19 +290,23 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		
 		// Read in document vectors
 //		LOG.info("Reading document vectors.");
-		double[][] docVector = new double[numDoc][dimension];
+		double[][][] docVector = new double[DAYS * 24][numDoc][dimension];
+		int hour = 0;
 		try {
 			File[] files = new File(docVectorPath).listFiles();
 			Arrays.sort(files);
 			for (File file : files) {
+				int cnt = 0;
 				BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
                 String line;
                 while((line = br.readLine()) != null) {
     				String[] tokens = line.split(" ");
     				for (int j = 1; j < tokens.length; j ++) {
-    					docVector[Integer.parseInt(tokens[0])][j - 1] = Double.parseDouble(tokens[j]);
+    					docVector[hour][cnt][j - 1] = Double.parseDouble(tokens[j]);
     				}
+    				cnt ++;
     			}
+                hour ++;
                 br.close();
 			}
 		} catch(Exception e){
@@ -296,15 +314,70 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		}
 //		LOG.info("Finished reading document vectors.");
 		
-		// Read in cluster assignments
+		// Read in cluster centers and assignments
 //		LOG.info("Reading cluster centers and assignments from file.");
+		List<double[][]> centers_days = new ArrayList<double[][]>();
+		List<List<List<Integer>>> indexes_days = new ArrayList<List<List<Integer>>>();
+		for (int i = 1; i <= DAYS; i ++) {
+			int ind = 0;
+			centers_days.add(new double[partitionNum][dimension]);
+			indexes_days.add(new ArrayList<List<Integer>>());
+			for (int j = 0; j < partitionNum; j ++) {
+				indexes_days.get(indexes_days.size() - 1).add(new ArrayList<Integer>());
+			}
+			try {
+				File[] files = new File(dayclusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011").listFiles();
+				Arrays.sort(files);
+				for (File file : files) {
+					if (file.getName().startsWith("part")) {
+						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
+	                    String line;
+	                    while((line = br.readLine()) != null) {
+	                    	line = line.substring(1, line.length() - 1);
+	                    	int j = 0;
+	        				String[] vector = line.split(",");
+	        				for (String coor : vector) {
+	        					centers_days.get(centers_days.size() - 1)[ind][j ++] = Double.parseDouble(coor);
+	        				}
+	        				ind ++;
+	        			}
+	                    br.close();
+					}
+				}
+			} catch(Exception e){
+	            System.out.println("File not found");
+			}
+			try {
+				File[] files = new File(dayclusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011").listFiles();
+				Arrays.sort(files);
+				for (File file : files) {
+					if (file.getName().startsWith("part")) {
+						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
+	                    String line;
+	                    while((line = br.readLine()) != null) {
+	                    	line = line.substring(1, line.length() - 1);
+	                    	String[] indexmap = line.split(",");
+	                    	indexes_days.get(indexes_days.size() - 1).get(Integer.parseInt(indexmap[1])).add(Integer.parseInt(indexmap[0]));
+	        			}
+	                    br.close();
+					}
+				}
+			} catch(Exception e){
+	            System.out.println("File not found");
+			}
+		}
 		List<double[][]> centers_hours = new ArrayList<double[][]>();
 		List<List<List<Integer>>> indexes_hours = new ArrayList<List<List<Integer>>>();
-		double[][] vectorSum = new double[partitionNum][dimension];
-		int docCntHours = 0;
-		Set<Integer> clusterindexes = new HashSet<Integer>();
+		Configuration conf = new Configuration();
+		FileSystem fs = FileSystem.get(conf);
+		IntWritable key = new IntWritable();
+		CentroidWritable val = new CentroidWritable();
+		double[][] centers = new double[partitionNum][dimension];
+		SequenceFile.Reader reader = null;
+		hour = 0;
+		int cnt = 0;
 		try {
-			File[] files = new File(clusterPath).listFiles();
+			File[] files = new File(hourclusterPath).listFiles();
 			Arrays.sort(files);
 			for (File file : files) {
 				File[] subFiles = new File(file.getPath()).listFiles();
@@ -315,33 +388,27 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 						for (int j = 0; j < partitionNum; j ++) {
 							indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
 						}
-						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(subFile.getPath())));
-	                    String line;
-	                    while((line = br.readLine()) != null) {
-	                    	line = line.substring(1, line.length() - 1);
-	                    	String[] indexmap = line.split(",");
-	                    	int docidx = (int)(Float.parseFloat(indexmap[0]));
-	                    	int clusteridx = Integer.parseInt(indexmap[1]);
-	                    	clusterindexes.add(clusteridx);
-	                    	indexes_hours.get(indexes_hours.size() - 1).get(clusteridx).add(docidx);
-	                    	for (int d = 0; d < dimension; d ++) {
-	                    		vectorSum[clusteridx][d] += docVector[docidx][d];
-	                    	}
-	                    	docCntHours ++;
-	                    }
-	                    for (int c = 0; c < partitionNum; c ++) {
-		                    for (int d = 0; d < dimension; d ++) {
-		                    	centers_hours.get(centers_hours.size() - 1)[c][d] = vectorSum[c][d] / docCntHours;
-		                    }
-	                    }
-	                    br.close();
+						reader = new SequenceFile.Reader(fs, new Path(subFile.getPath()), conf);
+						int partition = 0;
+						while (reader.next(key, val)) {
+							for (int i = 0; i < dimension; i ++) {
+								centers[partition][i] = val.getCentroid().getVector().get(i);
+							}
+							partition ++;
+					    }
+						for (int i = 0; i < docVector[hour].length; i ++) {
+							int nearestCluster = FindNearestCluster(docVector[hour][i], centers);
+							indexes_hours.get(indexes_hours.size() - 1).get(nearestCluster).add(cnt);
+							cnt ++;
+						}
+						hour ++;
+	                    reader.close();
 					}
 				}
 			}
 		} catch(Exception e){
             System.out.println("File not found");
 		}
-		
 //		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
@@ -369,7 +436,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		// Read in dayhours File
 		int[] days = new int[topicTotal];
 		int[] hours = new int[topicTotal];
-		int cnt = 0;
+		cnt = 0;
 		String dayhoursPath = cmdline.getOptionValue(DAYHOURS_OPTION);
 		try {
 			FileInputStream fis = new FileInputStream(dayhoursPath);
@@ -377,8 +444,12 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split(" ");
-				days[cnt] = Integer.parseInt(tokens[0]);
-				hours[cnt ++] = Integer.parseInt(tokens[1]);
+				if (cmdline.hasOption(HOURS_OPTION)) {
+					days[cnt] = Integer.parseInt(tokens[0]);
+					hours[cnt ++] = Integer.parseInt(tokens[1]);
+				} else {
+					hours[cnt ++] = 24 * Integer.parseInt(tokens[0]) + Integer.parseInt(tokens[1]);
+				}
 			}
 			try {
 				fis.close();
@@ -415,7 +486,11 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		for (top = 1; top <= partitionNum; top ++) {
 			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
-			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + ".txt")));
+			if (cmdline.hasOption(HOURS_OPTION)) {
+				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_hourly_top" + top + ".txt")));
+			} else {
+				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_daily_top" + top + ".txt")));
+			}
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
 				List<String> queryterms = parse(ANALYZER, topic.getQuery());
@@ -428,7 +503,17 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 				}
 				
 				int totalSize = 0;
-				for (int hour = 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
+				for (int day = 1; day <= days[topicCnt]; day ++) {
+					for (int i = 0; i < partitionNum; i ++) {
+						for (int j = 0; j < indexes_days.get(day - 1).get(i).size(); j ++) {
+							if (ids[indexes_days.get(day - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							totalSize ++;
+						}
+					}
+				}
+				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
 					for (int i = 0; i < partitionNum; i ++) {
 						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
 							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
@@ -439,10 +524,41 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 					}
 				}
 				int selectedSize = 0;
-				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
-				int[] partitions = determinePartition(centers_hours.get(finalHour - 2), queryVector[topicCnt], top, clusterindexes);
-				for (int partition : partitions) {
-					for (int hour = 1; hour <= finalHour - 1; hour ++) {
+				for (int day = 1; day <= days[topicCnt]; day ++) {
+					int[] partitions = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], top);
+//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
+//					for (int topNum = 0; topNum < top; topNum ++) {
+					for (int partition : partitions) {
+//						int partition = partitions[topNum];
+						for (int idx = 0; idx < indexes_days.get(day - 1).get(partition).size(); idx ++) {
+							int i = indexes_days.get(day - 1).get(partition).get(idx);
+							if (ids[i] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							selectedSize ++;
+							float score = 0.0F;
+							for (int t = 0; t < c; t++) {
+								float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
+								for (int j = 0; j < docLengthOrdered[i]; j ++) {
+									if (terms[offsets[i] + j] == qids[t]) {
+										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+										score += Math.log(mu / (docLengthEncoded[i] + mu));
+										break;
+									}
+								}
+							}
+							if (score > 0) {
+								topN.add(i, score);
+							}
+						}
+					}
+				}
+				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt] - 1; hour ++) {
+					int[] partitions = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], top);
+//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
+//					for (int topNum = 0; topNum < top; topNum ++) {
+					for (int partition : partitions) {
+//						int partition = partitions[topNum];
 						for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partition).size(); idx ++) {
 							int i = indexes_hours.get(hour - 1).get(partition).get(idx);
 							if (ids[i] > topic.getQueryTweetTime()) {
@@ -466,6 +582,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 						}
 					}
 				}
+				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
 				for (int partition = 0; partition < partitionNum; partition ++) {
 					for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
 						int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
@@ -519,7 +636,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 		return list;
 	}
 
-	public static int[] determinePartition(double[][] centers, double[] queryVector, int top, Set<Integer> clusterindexes) {
+	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
 //	public static int[] determinePartition(double[][] centers, double[] queryVector, int partition) {
 		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>(new ScoreComparator());
 		// Euclidean distance
@@ -532,7 +649,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 //		}
 		
 		// Cosine similarity
-		for (int i : clusterindexes) {
+		for (int i = 0; i < centers.length; i ++) {
 			double similarity = 0;
 			double centerLength = 0;
 			double queryLength = 0;
@@ -546,7 +663,7 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 			all.put(similarity, i);
 		}
 		
-		int[] result = new int[all.size()];
+		int[] result = new int[top];
 //		int[] result = new int[partition];
 		int count = 0;
 		for (Entry<Double, Integer> entry : all.entrySet()) {
@@ -558,5 +675,21 @@ public class RunQueriesHourly_Streaming_CFPerQuery {
 			}
 		}
 		return result;
+	}
+	
+	public static int FindNearestCluster(double[] docVector, double[][] centers) {
+		int res = 0;
+		double min = Integer.MAX_VALUE;
+		for (int i = 0; i < centers.length; i ++) {
+			double dist = 0.0;
+			for (int j = 0; j < centers[i].length; j ++) {
+				dist += (docVector[j] - centers[i][j]) * (docVector[j] - centers[i][j]);
+			}
+			if (dist < min) {
+				min = dist;
+				res = i;
+			}
+		}
+		return res;
 	}
 }
