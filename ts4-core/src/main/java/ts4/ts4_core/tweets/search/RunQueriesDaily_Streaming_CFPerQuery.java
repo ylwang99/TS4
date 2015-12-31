@@ -141,153 +141,153 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			System.err.println("Error: " + indexLocation + " does not exist!");
 			System.exit(-1);
 		}
-//		LOG.info("Reading term statistics from index.");
-//		TermStatistics termStats = new TermStatistics(indexPath, GenerateStatistics.NUM_DOCS);
-//		LOG.info("Finished reading term statistics from index.");
-//
-//		// Read in stats
-//		LOG.info("Reading term statistics from file.");
-//		int totalTerms = 0;
-//		int numDoc = 0;
-//		try {
-//			FileInputStream fisTerms = new FileInputStream(statsPath + "/all_terms_ordered.txt");
-//			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
-//			while((brTerms.readLine()) != null) {
-//				totalTerms ++;
-//			}
-//			try {
-//				fisTerms.close();
-//				brTerms.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		try {
-//			FileInputStream fisLength = new FileInputStream(statsPath + "/doc_length_ordered.txt");
-//			BufferedReader brLength = new BufferedReader(new InputStreamReader(fisLength));
-//			while((brLength.readLine()) != null) {
-//				numDoc ++;
-//			}
-//			try {
-//				fisLength.close();
-//				brLength.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		int[] terms = new int[totalTerms];
-//		int[] tf = new int[totalTerms];
-//		long[] ids = new long[numDoc];
-//		int[] docLengthOrdered = new int[numDoc];
-//		float[] docLengthEncoded = new float[numDoc];
-//		int[] offsets = new int[numDoc];
-//		try {
-//			FileInputStream fisTerms = new FileInputStream(statsPath + "/all_terms_ordered.txt");
-//			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
-//			String s;
-//			int i = 0;
-//			while((s = brTerms.readLine()) != null) {
-//				terms[i ++] = Integer.valueOf(s);
-//			}
-//			try {
-//				fisTerms.close();
-//				brTerms.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		try {
-//			FileInputStream fisTerms = new FileInputStream(statsPath + "/all_terms_tf.txt");
-//			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
-//			String s;
-//			int i = 0;
-//			while((s = brTerms.readLine()) != null) {
-//				tf[i ++] = Integer.valueOf(s);
-//			}
-//			try {
-//				fisTerms.close();
-//				brTerms.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		try {
-//			FileInputStream fisTerms = new FileInputStream(statsPath + "/doc_id.txt");
-//			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
-//			String s;
-//			int i = 0;
-//			while((s = brTerms.readLine()) != null) {
-//				ids[i ++] = Long.valueOf(s);
-//			}
-//			try {
-//				fisTerms.close();
-//				brTerms.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		try {
-//			FileInputStream fisLength = new FileInputStream(statsPath + "/doc_length_ordered.txt");
-//			BufferedReader brLength = new BufferedReader(new InputStreamReader(fisLength));
-//			String s;
-//			int i = 0;
-//			while((s = brLength.readLine()) != null) {
-//				docLengthOrdered[i ++] = Integer.valueOf(s);
-//			}
-//			try {
-//				fisLength.close();
-//				brLength.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		try {
-//			FileInputStream fisLength = new FileInputStream(statsPath + "/doc_length_encoded.txt");
-//			BufferedReader brLength = new BufferedReader(new InputStreamReader(fisLength));
-//			String s;
-//			int i = 0;
-//			while((s = brLength.readLine()) != null) {
-//				docLengthEncoded[i ++] = Float.valueOf(s);
-//			}
-//			try {
-//				fisLength.close();
-//				brLength.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e1) {
-//			e1.printStackTrace();
-//		}
-//		for (int i = 1; i < numDoc; i ++) {
-//			offsets[i] = offsets[i - 1] + docLengthOrdered[i - 1];
-//		}
-//		LOG.info("Finished reading term statistics from file.");
+		LOG.info("Reading term statistics from index.");
+		TermStatistics termStats = new TermStatistics(indexPath, GenerateStatistics.NUM_DOCS);
+		LOG.info("Finished reading term statistics from index.");
+
+		// Read in stats
+		LOG.info("Reading term statistics from file.");
+		int totalTerms = 0;
+		int numDoc = 0;
+		try {
+			FileInputStream fisTerms = new FileInputStream(statsPath + "/all_terms_ordered.txt");
+			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
+			while((brTerms.readLine()) != null) {
+				totalTerms ++;
+			}
+			try {
+				fisTerms.close();
+				brTerms.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			FileInputStream fisLength = new FileInputStream(statsPath + "/doc_length_ordered.txt");
+			BufferedReader brLength = new BufferedReader(new InputStreamReader(fisLength));
+			while((brLength.readLine()) != null) {
+				numDoc ++;
+			}
+			try {
+				fisLength.close();
+				brLength.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		int[] terms = new int[totalTerms];
+		int[] tf = new int[totalTerms];
+		long[] ids = new long[numDoc];
+		int[] docLengthOrdered = new int[numDoc];
+		float[] docLengthEncoded = new float[numDoc];
+		int[] offsets = new int[numDoc];
+		try {
+			FileInputStream fisTerms = new FileInputStream(statsPath + "/all_terms_ordered.txt");
+			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
+			String s;
+			int i = 0;
+			while((s = brTerms.readLine()) != null) {
+				terms[i ++] = Integer.valueOf(s);
+			}
+			try {
+				fisTerms.close();
+				brTerms.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			FileInputStream fisTerms = new FileInputStream(statsPath + "/all_terms_tf.txt");
+			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
+			String s;
+			int i = 0;
+			while((s = brTerms.readLine()) != null) {
+				tf[i ++] = Integer.valueOf(s);
+			}
+			try {
+				fisTerms.close();
+				brTerms.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			FileInputStream fisTerms = new FileInputStream(statsPath + "/doc_id.txt");
+			BufferedReader brTerms = new BufferedReader(new InputStreamReader(fisTerms));
+			String s;
+			int i = 0;
+			while((s = brTerms.readLine()) != null) {
+				ids[i ++] = Long.valueOf(s);
+			}
+			try {
+				fisTerms.close();
+				brTerms.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			FileInputStream fisLength = new FileInputStream(statsPath + "/doc_length_ordered.txt");
+			BufferedReader brLength = new BufferedReader(new InputStreamReader(fisLength));
+			String s;
+			int i = 0;
+			while((s = brLength.readLine()) != null) {
+				docLengthOrdered[i ++] = Integer.valueOf(s);
+			}
+			try {
+				fisLength.close();
+				brLength.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			FileInputStream fisLength = new FileInputStream(statsPath + "/doc_length_encoded.txt");
+			BufferedReader brLength = new BufferedReader(new InputStreamReader(fisLength));
+			String s;
+			int i = 0;
+			while((s = brLength.readLine()) != null) {
+				docLengthEncoded[i ++] = Float.valueOf(s);
+			}
+			try {
+				fisLength.close();
+				brLength.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		for (int i = 1; i < numDoc; i ++) {
+			offsets[i] = offsets[i - 1] + docLengthOrdered[i - 1];
+		}
+		LOG.info("Finished reading term statistics from file.");
 		
 		// Read in document vectors
 		LOG.info("Reading document vectors.");
@@ -416,24 +416,24 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			topicTotal ++;
 		}
 		
-//		CFStats[] cf = new CFStats[topicTotal];
-//		ObjectInputStream ois = null;
-//		int queryCnt = 0;
-//		try {
-//			File[] files = new File(statsPath + "/cf/query/").listFiles();
-//			Arrays.sort(files);
-//			for (File file : files) {
-//				if (file.getName().startsWith("query")) {
-//					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
-//					cf[Integer.parseInt(file.getName().substring(5)) - 1] = (CFStats) ois.readObject();
-//					queryCnt ++;
-//					LOG.info("query " + queryCnt);
-//				}
-//			}
-//		} catch(Exception e){
-//            System.out.println("File not found");
-//		}
-//		ois.close();
+		CFStats[] cf = new CFStats[topicTotal];
+		ObjectInputStream ois = null;
+		int queryCnt = 0;
+		try {
+			File[] files = new File(statsPath + "/cf/query/").listFiles();
+			Arrays.sort(files);
+			for (File file : files) {
+				if (file.getName().startsWith("query")) {
+					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
+					cf[Integer.parseInt(file.getName().substring(5)) - 1] = (CFStats) ois.readObject();
+					queryCnt ++;
+					LOG.info("query " + queryCnt);
+				}
+			}
+		} catch(Exception e){
+            System.out.println("File not found");
+		}
+		ois.close();
 		
 		// Read in dayhours File
 		int[] days = new int[topicTotal];
@@ -499,61 +499,60 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 				TopNScoredInts topN = new TopNScoredInts(numResults);
 				int[] qids = new int[queryterms.size()];
 				int c = 0;
-//				for (String term : queryterms) {
-//					qids[c] = termStats.getId(term);
-//					c++;
-//				}
+				for (String term : queryterms) {
+					qids[c] = termStats.getId(term);
+					c++;
+				}
 				
-//				int totalSize = 0;
-//				for (int day = 1; day <= days[topicCnt]; day ++) {
-//					for (int i = 0; i < partitionNum; i ++) {
-//						for (int j = 0; j < indexes_days.get(day - 1).get(i).size(); j ++) {
-//							if (ids[indexes_days.get(day - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
-//								continue;
-//							}
-//							totalSize ++;
-//						}
-//					}
-//				}
-//				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
-//					for (int i = 0; i < partitionNum; i ++) {
-//						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
-//							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
-//								continue;
-//							}
-//							totalSize ++;
-//						}
-//					}
-//				}
+				int totalSize = 0;
+				for (int day = 1; day <= days[topicCnt]; day ++) {
+					for (int i = 0; i < partitionNum; i ++) {
+						for (int j = 0; j < indexes_days.get(day - 1).get(i).size(); j ++) {
+							if (ids[indexes_days.get(day - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							totalSize ++;
+						}
+					}
+				}
+				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
+					for (int i = 0; i < partitionNum; i ++) {
+						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
+							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							totalSize ++;
+						}
+					}
+				}
 				int selectedSize = 0;
 				for (int day = 1; day <= days[topicCnt]; day ++) {
 					int[] partitions = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], top);
 //					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
 //					for (int topNum = 0; topNum < top; topNum ++) {
 					for (int partition : partitions) {
-						LOG.info("day"+partition);
 //						int partition = partitions[topNum];
-//						for (int idx = 0; idx < indexes_days.get(day - 1).get(partition).size(); idx ++) {
-//							int i = indexes_days.get(day - 1).get(partition).get(idx);
-//							if (ids[i] > topic.getQueryTweetTime()) {
-//								continue;
-//							}
-//							selectedSize ++;
-//							float score = 0.0F;
-//							for (int t = 0; t < c; t++) {
-//								float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
-//								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-//									if (terms[offsets[i] + j] == qids[t]) {
-//										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-//										score += Math.log(mu / (docLengthEncoded[i] + mu));
-//										break;
-//									}
-//								}
-//							}
-//							if (score > 0) {
-//								topN.add(i, score);
-//							}
-//						}
+						for (int idx = 0; idx < indexes_days.get(day - 1).get(partition).size(); idx ++) {
+							int i = indexes_days.get(day - 1).get(partition).get(idx);
+							if (ids[i] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							selectedSize ++;
+							float score = 0.0F;
+							for (int t = 0; t < c; t++) {
+								float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
+								for (int j = 0; j < docLengthOrdered[i]; j ++) {
+									if (terms[offsets[i] + j] == qids[t]) {
+										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+										score += Math.log(mu / (docLengthEncoded[i] + mu));
+										break;
+									}
+								}
+							}
+							if (score > 0) {
+								topN.add(i, score);
+							}
+						}
 					}
 				}
 				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt] - 1; hour ++) {
@@ -561,64 +560,63 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 //					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
 //					for (int topNum = 0; topNum < top; topNum ++) {
 					for (int partition : partitions) {
-						LOG.info("hour"+partition);
 //						int partition = partitions[topNum];
-//						for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partition).size(); idx ++) {
-//							int i = indexes_hours.get(hour - 1).get(partition).get(idx);
-//							if (ids[i] > topic.getQueryTweetTime()) {
-//								continue;
-//							}
-//							selectedSize ++;
-//							float score = 0.0F;
-//							for (int t = 0; t < c; t++) {
-//								float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
-//								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-//									if (terms[offsets[i] + j] == qids[t]) {
-//										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-//										score += Math.log(mu / (docLengthEncoded[i] + mu));
-//										break;
-//									}
-//								}
-//							}
-//							if (score > 0) {
-//								topN.add(i, score);
-//							}
-//						}
+						for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partition).size(); idx ++) {
+							int i = indexes_hours.get(hour - 1).get(partition).get(idx);
+							if (ids[i] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							selectedSize ++;
+							float score = 0.0F;
+							for (int t = 0; t < c; t++) {
+								float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
+								for (int j = 0; j < docLengthOrdered[i]; j ++) {
+									if (terms[offsets[i] + j] == qids[t]) {
+										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+										score += Math.log(mu / (docLengthEncoded[i] + mu));
+										break;
+									}
+								}
+							}
+							if (score > 0) {
+								topN.add(i, score);
+							}
+						}
 					}
 				}
 				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
 				for (int partition = 0; partition < partitionNum; partition ++) {
 					for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
 						int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
-//						if (ids[i] > topic.getQueryTweetTime()) {
-//							continue;
-//						}
-//						selectedSize ++;
-//						float score = 0.0F;
-//						for (int t = 0; t < c; t++) {
-//							float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
-//							for (int j = 0; j < docLengthOrdered[i]; j ++) {
-//								if (terms[offsets[i] + j] == qids[t]) {
-//									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-//									score += Math.log(mu / (docLengthEncoded[i] + mu));
-//									break;
-//								}
-//							}
-//						}
-//						if (score > 0) {
-//							topN.add(i, score);
-//						}
+						if (ids[i] > topic.getQueryTweetTime()) {
+							continue;
+						}
+						selectedSize ++;
+						float score = 0.0F;
+						for (int t = 0; t < c; t++) {
+							float prob = (float)(cf[topicCnt].getFreq(queryterms.get(t)) + 1) / (cf[topicCnt].getTotalTermCnt() + 1);
+							for (int j = 0; j < docLengthOrdered[i]; j ++) {
+								if (terms[offsets[i] + j] == qids[t]) {
+									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+									score += Math.log(mu / (docLengthEncoded[i] + mu));
+									break;
+								}
+							}
+						}
+						if (score > 0) {
+							topN.add(i, score);
+						}
 					}
 				}
 				
-//				int count = 1;
-//				for (PairOfIntFloat pair : topN.extractAll()) {
-//					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
-//					bw.newLine();
-//					count ++;
-//				}
-//				topicCnt ++;
-//				avgperctg += (float)(selectedSize) / totalSize;
+				int count = 1;
+				for (PairOfIntFloat pair : topN.extractAll()) {
+					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
+					bw.newLine();
+					count ++;
+				}
+				topicCnt ++;
+				avgperctg += (float)(selectedSize) / totalSize;
 			}
 			System.out.println(top + "\t" + (avgperctg / topicCnt));
 			bw.close();
