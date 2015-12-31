@@ -290,21 +290,24 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		
 		// Read in document vectors
 //		LOG.info("Reading document vectors.");
-		double[][][] docVector = new double[DAYS * 24][numDoc][dimension];
+		List<List<double[]>> docVector = new ArrayList<List<double[]>>();;
 		int hour = 0;
+		for (int i = 0; i < DAYS * 24; i ++) {
+			docVector.add(new ArrayList<double[]>());
+		}
 		try {
 			File[] files = new File(docVectorPath).listFiles();
 			Arrays.sort(files);
 			for (File file : files) {
-				int cnt = 0;
 				BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getPath())));
                 String line;
                 while((line = br.readLine()) != null) {
     				String[] tokens = line.split(" ");
+    				double[] vector = new double[dimension];
     				for (int j = 1; j < tokens.length; j ++) {
-    					docVector[hour][cnt][j - 1] = Double.parseDouble(tokens[j]);
+    					vector[j - 1] = Double.parseDouble(tokens[j]);
     				}
-    				cnt ++;
+    				docVector.get(hour).add(vector);
     			}
                 hour ++;
                 br.close();
@@ -396,8 +399,8 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 							}
 							partition ++;
 					    }
-						for (int i = 0; i < docVector[hour].length; i ++) {
-							int nearestCluster = FindNearestCluster(docVector[hour][i], centers);
+						for (int i = 0; i < docVector.get(hour).size(); i ++) {
+							int nearestCluster = FindNearestCluster(docVector.get(hour).get(i), centers);
 							indexes_hours.get(indexes_hours.size() - 1).get(nearestCluster).add(cnt);
 							cnt ++;
 						}
