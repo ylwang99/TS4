@@ -17,6 +17,7 @@ import java.io.StringReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -605,7 +606,7 @@ public class RunQueriesDaily {
 
 	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
 //	public static int[] determinePartition(double[][] centers, double[] queryVector, int partition) {
-		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>(new ScoreComparator());
+		List<ScoreIdPair> all = new ArrayList<ScoreIdPair>();
 		// Euclidean distance
 //		for(int i = 0; i < centers.length; i ++){
 //			double distance = 0;
@@ -614,7 +615,6 @@ public class RunQueriesDaily {
 //			}
 //			all.put(distance, i);
 //		}
-		
 		// Cosine similarity
 		for (int i = 0; i < centers.length; i ++) {
 			double similarity = 0;
@@ -627,15 +627,15 @@ public class RunQueriesDaily {
 				sum += centers[i][j] * queryVector[j];
 			}
 			similarity = sum / (Math.sqrt(centerLength) * Math.sqrt(queryLength));
-			all.put(similarity, i);
+			all.add(new ScoreIdPair(similarity, i));
 		}
+		Collections.sort(all, new ScoreComparator());
 		
 		int[] result = new int[top];
-//		int[] result = new int[partition];
 		int count = 0;
-		for (Entry<Double, Integer> entry : all.entrySet()) {
+		for (ScoreIdPair pair : all) {
 			if (count < top) {
-				result[count] = entry.getValue();
+				result[count] = pair.getIndex();
 				count ++;
 			} else {
 				break;

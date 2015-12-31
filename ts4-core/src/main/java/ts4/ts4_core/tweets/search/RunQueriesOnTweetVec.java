@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -382,7 +383,7 @@ public class RunQueriesOnTweetVec {
 	
 	public static List<Integer> search(double[][] docVectors, double[] queryVector) {
 		List<Integer> results = new ArrayList<Integer>();
-		TreeMap<Double, Integer> map = new TreeMap<Double, Integer>(new ScoreComparator());
+		List<ScoreIdPair> all = new ArrayList<ScoreIdPair>();
 		// Euclidean distance
 //		for (int i = 0; i < docVectors.length; i ++) {
 //			double dist = 0;
@@ -403,21 +404,38 @@ public class RunQueriesOnTweetVec {
 				sum += docVectors[i][j] * queryVector[j];
 			}
 			similarity = sum / (Math.sqrt(docLength) * Math.sqrt(queryLength));
-			map.put(similarity, i);
+			all.add(new ScoreIdPair(similarity, i));
 		}
+		Collections.sort(all, new ScoreComparator());
 		int count = 0;
-		for (Map.Entry<Double, Integer> entry : map.entrySet()) {
+		for (ScoreIdPair pair: all) {
 			if (count >= GenerateStatistics.TOP) break;
-			results.add(entry.getValue());
+			results.add(pair.getIndex());
 			count ++;
 		}
 		return results;
 	}
 }
 
-class ScoreComparator implements Comparator<Double>{
-    public int compare(Double d1, Double d2) {
-//        return d1.compareTo(d2);
-    	return d2.compareTo(d1);
+class ScoreIdPair {
+	Double score;
+	Integer index;
+	public ScoreIdPair(Double score, Integer index) {
+		this.score = score;
+		this.index = index;
+	}
+	public Double getScore() {
+		return score;
+	}
+	public Integer getIndex() {
+		return index;
+	}
+}
+
+class ScoreComparator implements Comparator<ScoreIdPair>{
+    public int compare(ScoreIdPair o1, ScoreIdPair o2) {
+    	return o1.getScore().equals(o2.getScore()) ? 
+    			o1.getIndex().compareTo(o2.getIndex()) 
+                : o2.getScore().compareTo(o1.getScore());
     }
 }

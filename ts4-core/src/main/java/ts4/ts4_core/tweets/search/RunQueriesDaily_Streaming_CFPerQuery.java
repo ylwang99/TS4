@@ -18,8 +18,10 @@ import java.io.StringReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -388,15 +390,13 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 					indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
 				}
 				Option option = SequenceFile.Reader.file(new Path(file.getPath() + "/part-r-00000"));
-				reader = new SequenceFile.Reader(conf,option);
-				int partition = 0;
+				reader = new SequenceFile.Reader(conf, option);
 				while (reader.next(key, val)) {
 					for (int i = 0; i < dimension; i ++) {
-						centers[partition][i] = val.getCentroid().getVector().get(i);
+						centers[key.get()][i] = val.getCentroid().getVector().get(i);
 					}
-					centers_hours.add(centers);
-					partition ++;
 			    }
+				centers_hours.add(centers);
 				for (int i = 0; i < docVector.get(hour).size(); i ++) {
 					int nearestCluster = FindNearestCluster(docVector.get(hour).get(i), centers);
 					indexes_hours.get(indexes_hours.size() - 1).get(nearestCluster).add(cnt);
@@ -408,6 +408,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		} catch(Exception e){
             System.out.println("File not found");
 		}
+		LOG.info(centers_hours.size());
 		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
@@ -485,7 +486,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		}
 		
 //		System.out.println("top n\tavg scan size percentage");
-		for (top = 1; top <= partitionNum; top ++) {
+		for (top = 100; top <= partitionNum; top ++) {
 			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
 			if (cmdline.hasOption(HOURS_OPTION)) {
@@ -640,7 +641,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 
 	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
 //	public static int[] determinePartition(double[][] centers, double[] queryVector, int partition) {
-		TreeMap<Double, Integer> all = new TreeMap<Double, Integer>(new ScoreComparator());
+		List<ScoreIdPair> all = new ArrayList<ScoreIdPair>();
 		// Euclidean distance
 //		for(int i = 0; i < centers.length; i ++){
 //			double distance = 0;
@@ -662,15 +663,16 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 				sum += centers[i][j] * queryVector[j];
 			}
 			similarity = sum / (Math.sqrt(centerLength) * Math.sqrt(queryLength));
-			all.put(similarity, i);
+			all.add(new ScoreIdPair(similarity, i));
 		}
+		Collections.sort(all, new ScoreComparator());
 		
 		int[] result = new int[top];
 //		int[] result = new int[partition];
 		int count = 0;
-		for (Entry<Double, Integer> entry : all.entrySet()) {
+		for (ScoreIdPair pair : all) {
 			if (count < top) {
-				result[count] = entry.getValue();
+				result[count] = pair.getIndex();
 				count ++;
 			} else {
 				break;
