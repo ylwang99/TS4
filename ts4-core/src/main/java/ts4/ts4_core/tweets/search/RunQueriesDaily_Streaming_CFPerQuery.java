@@ -395,6 +395,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 					for (int i = 0; i < dimension; i ++) {
 						centers[partition][i] = val.getCentroid().getVector().get(i);
 					}
+					centers_hours.add(centers);
 					partition ++;
 			    }
 				for (int i = 0; i < docVector.get(hour).size(); i ++) {
