@@ -14,9 +14,11 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
+import org.apache.mahout.clustering.streaming.mapreduce.CentroidWritable;
 
 public class CheckFile {
 	private static final Logger LOG = Logger.getLogger(CheckFile.class);
@@ -45,8 +47,8 @@ public class CheckFile {
 		
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
-		Text key = new Text();
-		Text val = new Text();
+		IntWritable key = new IntWritable();
+		CentroidWritable val = new CentroidWritable();
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, new Path(inputPath), conf);		
 		while (reader.next(key, val)) {
 	        System.err.println(key + "\t" + val);
