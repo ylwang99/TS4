@@ -143,6 +143,13 @@
               </jvmSettings>
             </program>
             <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_Streaming_CFPerQuery</mainClass>
+              <name>RunQueriesDaily_Streaming_CFPerQuery</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
               <mainClass>ts4.ts4_core.tweets.search.RunQueriesOnTweetVec</mainClass>
               <name>RunQueriesOnTweetVec</name>
               <jvmSettings>
