@@ -54,8 +54,8 @@ import com.google.common.collect.Lists;
 import edu.umd.cloud9.io.pair.PairOfIntFloat;
 import edu.umd.cloud9.util.TopNScoredInts;
 
-public class RunQueriesDaily_Streaming_CFPerQuery2 {
-	private static final Logger LOG = Logger.getLogger(RunQueriesDaily_Streaming_CFPerQuery2.class);
+public class RunQueriesDaily_Streaming_CFPerQuery {
+	private static final Logger LOG = Logger.getLogger(RunQueriesDaily_Streaming_CFPerQuery.class);
 	public static final Analyzer ANALYZER = new TweetAnalyzer(Version.LUCENE_43);
 	private static final int DAYS = 17;
 
@@ -118,7 +118,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery2 {
 
 		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(DOCVECTORS) || !cmdline.hasOption(DAY_CLUSTER_OPTION) || !cmdline.hasOption(HOUR_CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp(RunQueriesDaily_Streaming_CFPerQuery2.class.getName(), options);
+			formatter.printHelp(RunQueriesDaily_Streaming_CFPerQuery.class.getName(), options);
 			System.exit(-1);
 		}
 
