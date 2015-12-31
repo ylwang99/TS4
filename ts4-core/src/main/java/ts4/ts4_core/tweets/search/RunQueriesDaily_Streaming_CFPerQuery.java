@@ -383,7 +383,6 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			File[] files = new File(hourclusterPath).listFiles();
 			Arrays.sort(files);
 			for (File file : files) {
-				centers_hours.add(new double[partitionNum][dimension]);
 				indexes_hours.add(new ArrayList<List<Integer>>());
 				for (int j = 0; j < partitionNum; j ++) {
 					indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
