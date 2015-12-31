@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.SequenceFile.Reader.Option;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -372,7 +373,6 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		List<double[][]> centers_hours = new ArrayList<double[][]>();
 		List<List<List<Integer>>> indexes_hours = new ArrayList<List<List<Integer>>>();
 		Configuration conf = new Configuration();
-		FileSystem fs = FileSystem.get(conf);
 		IntWritable key = new IntWritable();
 		CentroidWritable val = new CentroidWritable();
 		double[][] centers = new double[partitionNum][dimension];
@@ -383,31 +383,27 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			File[] files = new File(hourclusterPath).listFiles();
 			Arrays.sort(files);
 			for (File file : files) {
-				File[] subFiles = new File(file.getPath()).listFiles();
-				for (File subFile : subFiles) {
-					if (subFile.getName().startsWith("part")) {
-						centers_hours.add(new double[partitionNum][dimension]);
-						indexes_hours.add(new ArrayList<List<Integer>>());
-						for (int j = 0; j < partitionNum; j ++) {
-							indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
-						}
-						reader = new SequenceFile.Reader(fs, new Path(subFile.getPath()), conf);
-						int partition = 0;
-						while (reader.next(key, val)) {
-							for (int i = 0; i < dimension; i ++) {
-								centers[partition][i] = val.getCentroid().getVector().get(i);
-							}
-							partition ++;
-					    }
-						for (int i = 0; i < docVector.get(hour).size(); i ++) {
-							int nearestCluster = FindNearestCluster(docVector.get(hour).get(i), centers);
-							indexes_hours.get(indexes_hours.size() - 1).get(nearestCluster).add(cnt);
-							cnt ++;
-						}
-						hour ++;
-	                    reader.close();
-					}
+				centers_hours.add(new double[partitionNum][dimension]);
+				indexes_hours.add(new ArrayList<List<Integer>>());
+				for (int j = 0; j < partitionNum; j ++) {
+					indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
 				}
+				Option option = SequenceFile.Reader.file(new Path(file.getPath() + "/part-r-00000"));
+				reader = new SequenceFile.Reader(conf,option);
+				int partition = 0;
+				while (reader.next(key, val)) {
+					for (int i = 0; i < dimension; i ++) {
+						centers[partition][i] = val.getCentroid().getVector().get(i);
+					}
+					partition ++;
+			    }
+				for (int i = 0; i < docVector.get(hour).size(); i ++) {
+					int nearestCluster = FindNearestCluster(docVector.get(hour).get(i), centers);
+					indexes_hours.get(indexes_hours.size() - 1).get(nearestCluster).add(cnt);
+					cnt ++;
+				}
+				hour ++;
+                reader.close();
 			}
 		} catch(Exception e){
             System.out.println("File not found");
