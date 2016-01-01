@@ -418,6 +418,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		
 		CFStats[] cf = new CFStats[topicTotal];
 		ObjectInputStream ois = null;
+		int queryCnt = 0;
 		try {
 			File[] files = new File(statsPath + "/cf/query/").listFiles();
 			Arrays.sort(files);
@@ -425,6 +426,8 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 				if (file.getName().startsWith("query")) {
 					ois = new ObjectInputStream(new FileInputStream(file.getPath()));
 					cf[Integer.parseInt(file.getName().substring(5)) - 1] = (CFStats) ois.readObject();
+					queryCnt ++;
+					LOG.info("query " + queryCnt);
 				}
 			}
 		} catch(Exception e){
