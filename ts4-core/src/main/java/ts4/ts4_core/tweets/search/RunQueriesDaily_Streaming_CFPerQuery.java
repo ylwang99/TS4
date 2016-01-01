@@ -485,7 +485,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 		}
 		
 //		System.out.println("top n\tavg scan size percentage");
-		for (top = 100; top <= partitionNum; top ++) {
+		for (top = 1; top <= partitionNum; top ++) {
 			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
 			if (cmdline.hasOption(HOURS_OPTION)) {
