@@ -446,7 +446,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split(" ");
-				if (cmdline.hasOption(HOURS_OPTION)) {
+				if (!cmdline.hasOption(HOURS_OPTION)) {
 					days[cnt] = Integer.parseInt(tokens[0]);
 					hours[cnt ++] = Integer.parseInt(tokens[1]);
 				} else {
