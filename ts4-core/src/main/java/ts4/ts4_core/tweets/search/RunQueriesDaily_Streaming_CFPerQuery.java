@@ -691,7 +691,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 			for (int j = 0; j < docVector.length; j ++) {
 				docLength += docVector[j] * docVector[j];
 				centerLength += centers[i][j] * centers[i][j];
-				sum += docVector[i] * centers[i][j];
+				sum += docVector[j] * centers[i][j];
 			}
 			similarity = sum / (Math.sqrt(docLength) * Math.sqrt(centerLength));
 			if (similarity > max) {
