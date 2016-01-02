@@ -682,14 +682,20 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 	
 	public static int FindNearestCluster(double[] docVector, double[][] centers) {
 		int res = 0;
-		double min = Integer.MAX_VALUE;
+		double max = Integer.MIN_VALUE;
 		for (int i = 0; i < centers.length; i ++) {
-			double dist = 0.0;
-			for (int j = 0; j < centers[i].length; j ++) {
-				dist += (docVector[j] - centers[i][j]) * (docVector[j] - centers[i][j]);
+			double similarity = 0;
+			double docLength = 0;
+			double centerLength = 0;
+			double sum = 0;
+			for (int j = 0; j < docVector.length; j ++) {
+				docLength += docVector[j] * docVector[j];
+				centerLength += centers[i][j] * centers[i][j];
+				sum += docVector[i] * centers[i][j];
 			}
-			if (dist < min) {
-				min = dist;
+			similarity = sum / (Math.sqrt(docLength) * Math.sqrt(centerLength));
+			if (similarity > max) {
+				max = similarity;
 				res = i;
 			}
 		}
