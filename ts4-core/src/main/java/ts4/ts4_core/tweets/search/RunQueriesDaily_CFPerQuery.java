@@ -62,6 +62,7 @@ public class RunQueriesDaily_CFPerQuery {
 	private static final String QUERIES_OPTION = "queries";
 	private static final String QUERIES_VECTOR_OPTION = "queriesvector";
 	private static final String OUTPUT_OPTION = "output";
+	private static final String TRAIL = "trail";
 
 	@SuppressWarnings({ "static-access" })
 	public static void main(String[] args) throws Exception {
@@ -92,6 +93,8 @@ public class RunQueriesDaily_CFPerQuery {
 				.withDescription("query vector").create(QUERIES_VECTOR_OPTION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
 				.withDescription("output location").create(OUTPUT_OPTION));
+		options.addOption(OptionBuilder.withArgName("arg").hasArg()
+				.withDescription("trail").create(TRAIL));
 
 		CommandLine cmdline = null;
 		CommandLineParser parser = new GnuParser();
@@ -102,7 +105,7 @@ public class RunQueriesDaily_CFPerQuery {
 			System.exit(-1);
 		}
 
-		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
+		if (!cmdline.hasOption(TRAIL) || !cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(RunQueriesDaily_CFPerQuery.class.getName(), options);
 			System.exit(-1);
@@ -117,6 +120,7 @@ public class RunQueriesDaily_CFPerQuery {
 		String queryPath = cmdline.getOptionValue(QUERIES_OPTION);
 		String queryVectorPath = cmdline.getOptionValue(QUERIES_VECTOR_OPTION);
 		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
+		String trail = cmdline.getOptionValue(TRAIL);
 		
 		// Read in index
 		File indexLocation = new File(indexPath);
@@ -284,7 +288,7 @@ public class RunQueriesDaily_CFPerQuery {
 				indexes_days.get(indexes_days.size() - 1).add(new ArrayList<Integer>());
 			}
 			try {
-				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011").listFiles();
+				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011-trail" + trail).listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -306,7 +310,7 @@ public class RunQueriesDaily_CFPerQuery {
 	            System.out.println("File not found");
 			}
 			try {
-				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011").listFiles();
+				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011-trail" + trail).listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -334,7 +338,7 @@ public class RunQueriesDaily_CFPerQuery {
 				indexes_hours.get(indexes_hours.size() - 1).add(new ArrayList<Integer>());
 			}
 			try {
-				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-hour" + i + "-2011").listFiles();
+				File[] files = new File(clusterPath + "/clustercenters-d" + dimension + "-hour" + i + "-2011-trail" + trail).listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -356,7 +360,7 @@ public class RunQueriesDaily_CFPerQuery {
 	            System.out.println("File not found");
 			}
 			try {
-				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-hour" + i + "-2011").listFiles();
+				File[] files = new File(clusterPath + "/clusterassign-d" + dimension + "-hour" + i + "-2011-trail" + trail).listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -452,9 +456,9 @@ public class RunQueriesDaily_CFPerQuery {
 			float avgperctg = 0.0f;
 			BufferedWriter bw = null;
 			if (cmdline.hasOption(HOURS_OPTION)) {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + ".txt")));
+				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt")));
 			} else {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + ".txt")));
+				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt")));
 			}
 			int topicCnt = 0;
 			for ( TrecTopic topic : topics ) {  
