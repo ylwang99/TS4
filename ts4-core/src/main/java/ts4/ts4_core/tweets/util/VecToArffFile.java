@@ -44,7 +44,7 @@ public class VecToArffFile {
 		options.addOption(OptionBuilder.withArgName("path").hasArg()
 				.withDescription("input location").create(INPUT_OPTION));
 		options.addOption(OptionBuilder.withArgName("arg").hasArg()
-				.withDescription("dimension").create(DIMENSION));
+				.withDescription("dimension").create(DIMENSION_OPTION));
 		options.addOption(OptionBuilder.withArgName("path").hasArg()
 				.withDescription("output location").create(OUTPUT_OPTION));
 		CommandLine cmdline = null;
