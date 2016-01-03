@@ -60,10 +60,16 @@ public class MoaStreaming {
 		streamKM.widthOption.setValue(30000);
 		streamKM.setModelContext(stream.getHeader());
 		streamKM.prepareForUse();
+		int cnt = 0;
 		while (stream.hasMoreInstances()){
 		  DenseInstance trainInst = new DenseInstance(stream.nextInstance()); 
 		  streamKM.trainOnInstanceImpl(trainInst);
+		  cnt ++;
+		  if (cnt % 10000 == 0) {
+			  LOG.info(cnt + "processed.");
+		  }
 		}
+		LOG.info("total " + cnt + " processed.");
 		
 		String outputFile = cmdline.getOptionValue(OUTPUT_OPTION);
 		try {
