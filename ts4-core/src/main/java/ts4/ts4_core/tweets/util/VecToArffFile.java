@@ -92,9 +92,9 @@ public class VecToArffFile {
 					bw.write(tokens[i] + ",");
 				}
 				bw.write(tokens[dimension]);
+				bw.newLine();
 				cnt ++;
 			}
-			bw.newLine();
 			try {
 				fis.close();
 				br.close();
