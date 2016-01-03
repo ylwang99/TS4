@@ -81,7 +81,7 @@ public class MoaStreaming {
 				  LOG.info(cnt + " processed.");
 			  }
 			}
-			double[][] centers = new double[clusterNums][];
+			double[][] centers = new double[clusterNums][5];
 			for (int i = 0; i < clusterNums; i ++) {
 				centers[i] = streamKM.getClusteringResult().get(i).getCenter();
 			}
