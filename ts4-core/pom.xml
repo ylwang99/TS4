@@ -206,6 +206,11 @@
 		<version>14.0.1</version>
     </dependency>
     <dependency>
+  		<groupId>nz.ac.waikato.cms.moa</groupId>
+  		<artifactId>moa</artifactId>
+  		<version>2013.11</version>
+  	</dependency>
+    <dependency>
 		<groupId>cc.twittertools</groupId>
 		<artifactId>twitter-tools-core</artifactId>
 		<version>1.4.3</version>
