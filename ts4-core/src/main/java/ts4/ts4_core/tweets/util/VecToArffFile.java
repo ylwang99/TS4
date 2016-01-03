@@ -1,13 +1,16 @@
 package ts4.ts4_core.tweets.util;
 
-/* Generate input sequence file for mahout streaming clustering
- * Run: sh target/appassembler/bin/VectoSequence -input {tweetVecPath} -output {tweetSequencePath}
+/* Generate input sequence file for moa streaming clustering
+ * Run: sh target/appassembler/bin/VecToArffFile -input {tweetVecPath} -dimension {dimension} -output {ArffPath}
  * 
  */
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -29,9 +32,10 @@ import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.DenseVector;
 import org.apache.mahout.math.VectorWritable;
 
-public class VecToSequence {
-	private static final Logger LOG = Logger.getLogger(VecToSequence.class);
+public class VecToArffFile {
+	private static final Logger LOG = Logger.getLogger(VecToArffFile.class);
 	private static final String INPUT_OPTION = "input";
+	private static final String DIMENSION_OPTION = "dimension";
 	private static final String OUTPUT_OPTION = "output";
 
 	@SuppressWarnings({ "static-access", "deprecation" })
@@ -39,6 +43,8 @@ public class VecToSequence {
 		Options options = new Options();
 		options.addOption(OptionBuilder.withArgName("path").hasArg()
 				.withDescription("input location").create(INPUT_OPTION));
+		options.addOption(OptionBuilder.withArgName("arg").hasArg()
+				.withDescription("dimension").create(DIMENSION));
 		options.addOption(OptionBuilder.withArgName("path").hasArg()
 				.withDescription("output location").create(OUTPUT_OPTION));
 		CommandLine cmdline = null;
@@ -49,13 +55,14 @@ public class VecToSequence {
 			System.err.println("Error parsing command line: " + exp.getMessage());
 			System.exit(-1);
 		}
-		if (!cmdline.hasOption(INPUT_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
+		if (!cmdline.hasOption(INPUT_OPTION) || !cmdline.hasOption(DIMENSION_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp(VecToSequence.class.getName(), options);
+			formatter.printHelp(VecToArffFile.class.getName(), options);
 			System.exit(-1);
 		}
 
 		String inputPath = cmdline.getOptionValue(INPUT_OPTION);
+		int dimension = Integer.parseInt(cmdline.getOptionValue(DIMENSION_OPTION));
 		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
 		
 		File input = new File(inputPath);
@@ -65,38 +72,36 @@ public class VecToSequence {
 		if (!output.exists()) {
 			output.mkdir();
 		}
-		Configuration conf = new Configuration();
-		FileSystem fs = FileSystem.get(conf);
-		SequenceFile.Writer writer = null;
 		int cnt = 0;
 		for (File file : files) {
 			FileInputStream fis = new FileInputStream(file.getPath());
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-			IntWritable key = new IntWritable();
-			VectorWritable value = new VectorWritable();
-			writer = SequenceFile.createWriter(fs, conf, new Path(outputPath + "/" + file.getName()), key.getClass(), value.getClass());
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/" + file.getName())));
+			bw.write("@RELATION hour");
+			bw.newLine();
+			for (int i = 0; i < dimension; i ++) {
+				bw.write("@ATTRIBUTE attribute" + (i + 1) +"  NUMERIC");
+				bw.newLine();
+			}
+			bw.write("@DATA");
+			bw.newLine();
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split(" ");
-				key.set(Integer.parseInt(tokens[0]));
-				Vector vector = new DenseVector(tokens.length - 1);
-				for (int i = 1; i < tokens.length; i ++) {
-					vector.set(i - 1, Double.parseDouble(tokens[i]));
+				for (int i = 1; i < tokens.length - 1; i ++) {
+					bw.write(tokens[i] + ",");
 				}
-				value.set(vector);
-				writer.append(key, value);
-				if (cnt % 100000 == 0) {
-					LOG.info(cnt + " processed.");
-				}
+				bw.write(tokens[dimension]);
 				cnt ++;
 			}
+			bw.newLine();
 			try {
 				fis.close();
 				br.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			IOUtils.closeStream(writer); 
+			bw.close();
 		}
 		LOG.info("total " + cnt + " processed.");
 	}
