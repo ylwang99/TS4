@@ -115,8 +115,8 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.util.CheckFile</mainClass>
-              <name>CheckFile</name>
+              <mainClass>ts4.ts4_core.tweets.util.MoaStreaming</mainClass>
+              <name>MoaStreaming</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
