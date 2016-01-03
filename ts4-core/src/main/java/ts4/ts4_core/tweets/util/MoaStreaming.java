@@ -1,9 +1,13 @@
 package ts4.ts4_core.tweets.util;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Arrays;
 
 /* MOA streaming clustering
  * Run: sh target/appassembler/bin/MoaStreaming -input {tweetVecPath} -output {ArffPath}
@@ -49,37 +53,50 @@ public class MoaStreaming {
 			formatter.printHelp(MoaStreaming.class.getName(), options);
 			System.exit(-1);
 		}
-
-		FileStream stream = new FileStream();
-		String inputFile = cmdline.getOptionValue(INPUT_OPTION);	//dense ARFF file
-		stream.arffFileOption = new FileOption("arffFile",'f',"ARFF file to load.",inputFile,"arff",false);
-		stream.restart();
-		StreamKM streamKM = new StreamKM();
-		streamKM.sizeCoresetOption.setValue(200 * clusterNums);
-		streamKM.numClustersOption.setValue(clusterNums);
-		streamKM.widthOption.setValue(30000);
-		streamKM.setModelContext(stream.getHeader());
-		streamKM.prepareForUse();
+		String inputPath = cmdline.getOptionValue(INPUT_OPTION);
+		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
+		File input = new File(inputPath);
+		File output = new File(outputPath);
+		File[] files = input.listFiles();
+		Arrays.sort(files);
+		if (!output.exists()) {
+			output.mkdir();
+		}
 		int cnt = 0;
-		while (stream.hasMoreInstances()){
-		  DenseInstance trainInst = new DenseInstance(stream.nextInstance()); 
-		  streamKM.trainOnInstanceImpl(trainInst);
-		  cnt ++;
-		  if (cnt % 10000 == 0) {
-			  LOG.info(cnt + "processed.");
-		  }
+		for (File inputFile : files) {
+			FileStream stream = new FileStream();
+			stream.arffFileOption = new FileOption("arffFile",'f',"ARFF file to load.",inputFile.getPath(),"arff",false);
+			stream.restart();
+			StreamKM streamKM = new StreamKM();
+			streamKM.sizeCoresetOption.setValue(200 * clusterNums);
+			streamKM.numClustersOption.setValue(clusterNums);
+			streamKM.widthOption.setValue(30000);
+			streamKM.setModelContext(stream.getHeader());
+			streamKM.prepareForUse();
+			while (stream.hasMoreInstances()){
+			  DenseInstance trainInst = new DenseInstance(stream.nextInstance()); 
+			  streamKM.trainOnInstanceImpl(trainInst);
+			  cnt ++;
+			  if (cnt % 10000 == 0) {
+				  LOG.info(cnt + " processed.");
+			  }
+			}
+			double[][] centers = new double[clusterNums][];
+			for (int i = 0; i < clusterNums; i ++) {
+				centers[i] = streamKM.getClusteringResult().get(i).getCenter();
+			}
+			try {
+				@SuppressWarnings("resource")
+				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));
+				oos.writeObject(centers);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();  
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		LOG.info("total " + cnt + " processed.");
 		
-		String outputFile = cmdline.getOptionValue(OUTPUT_OPTION);
-		try {
-			@SuppressWarnings("resource")
-			ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(outputFile));
-			output.writeObject(streamKM);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();  
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
 	}
 }
