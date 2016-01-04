@@ -64,6 +64,7 @@ public class MoaStreaming {
 		}
 		int cnt = 0;
 		for (File inputFile : files) {
+			System.out.println(inputFile.getPath());
 			FileStream stream = new FileStream();
 			stream.arffFileOption = new FileOption("arffFile",'f',"ARFF file to load.",inputFile.getPath(),"arff",false);
 			stream.restart();
