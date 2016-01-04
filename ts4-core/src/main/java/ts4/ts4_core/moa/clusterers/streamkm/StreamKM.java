@@ -84,7 +84,6 @@ public class StreamKM extends AbstractClusterer {
 			tmpCentresStreamingCoreset = new Point[numberOfCentres];
 			minCost = lloydPlusPlus(numberOfCentres, coresetsize, dimension, streamingCoreset, tmpCentresStreamingCoreset);
 			centresStreamingCoreset = tmpCentresStreamingCoreset;
-			System.out.println(centresStreamingCoreset[0] == null);
 			curCost = minCost;
 			for(int i = 1; i < 5; i++){
 				curCost = lloydPlusPlus(numberOfCentres, coresetsize, dimension, streamingCoreset, tmpCentresStreamingCoreset);
