@@ -69,7 +69,7 @@ public class MoaStreaming {
 			stream.arffFileOption = new FileOption("arffFile",'f',"ARFF file to load.",inputFile.getPath(),"arff",false);
 			stream.restart();
 			StreamKM streamKM = new StreamKM();
-			streamKM.sizeCoresetOption.setValue(200 * clusterNums);
+			streamKM.sizeCoresetOption.setValue(50 * clusterNums);
 			streamKM.numClustersOption.setValue(clusterNums);
 			streamKM.widthOption.setValue(20000);
 			streamKM.setModelContext(stream.getHeader());

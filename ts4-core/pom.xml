@@ -115,15 +115,15 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.util.test</mainClass>
-              <name>test</name>
+              <mainClass>ts4.ts4_core.tweets.util.MoaStreaming</mainClass>
+              <name>MoaStreaming</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.util.MoaStreaming</mainClass>
-              <name>MoaStreaming</name>
+              <mainClass>ts4.ts4_core.tweets.util.test</mainClass>
+              <name>test</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>

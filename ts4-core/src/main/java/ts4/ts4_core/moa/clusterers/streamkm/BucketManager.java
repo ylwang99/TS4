@@ -37,7 +37,7 @@ public class BucketManager  {
 	**/
 	public BucketManager(int n,int d,int maxsize, MTRandom random){
 		this.clustererRandom = random;
-		this.numberOfBuckets = (int) Math.ceil(Math.log((double)n/(double)maxsize) / Math.log(2) )+2;
+		this.numberOfBuckets = (int) Math.ceil(Math.log((double)n/(double)maxsize) / Math.log(2) )+3;
 		this.maxBucketsize = maxsize;
 		this.buckets = new Bucket[this.numberOfBuckets];
 		for(int i=0; i<this.numberOfBuckets; i++){
