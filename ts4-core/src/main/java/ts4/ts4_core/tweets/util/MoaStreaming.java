@@ -22,7 +22,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
 
-import moa.clusterers.streamkm.StreamKM;
+import ts4.ts4_core.moa.clusterers.streamkm.*;
 import moa.options.FileOption;
 import moa.streams.clustering.FileStream;
 import weka.core.DenseInstance;
@@ -70,7 +70,7 @@ public class MoaStreaming {
 			StreamKM streamKM = new StreamKM();
 			streamKM.sizeCoresetOption.setValue(200 * clusterNums);
 			streamKM.numClustersOption.setValue(clusterNums);
-			streamKM.widthOption.setValue(30000);
+			streamKM.widthOption.setValue(20000);
 			streamKM.setModelContext(stream.getHeader());
 			streamKM.prepareForUse();
 			while (stream.hasMoreInstances()){
@@ -87,7 +87,7 @@ public class MoaStreaming {
 			}
 			try {
 				@SuppressWarnings("resource")
-				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));
+				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath + "/" + inputFile.getName()));
 				oos.writeObject(centers);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();  

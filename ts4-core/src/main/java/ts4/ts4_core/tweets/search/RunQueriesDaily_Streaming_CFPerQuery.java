@@ -393,7 +393,7 @@ public class RunQueriesDaily_Streaming_CFPerQuery {
 				reader = new SequenceFile.Reader(conf, option);
 				while (reader.next(key, val)) {
 					for (int i = 0; i < dimension; i ++) {
-						centers[key.get()][i] = val.getCentroid().getVector().get(i);
+						centers[key.get()][i] = val.getCentroid().getVector().get(i) / val.getCentroid().getWeight();
 					}
 			    }
 				centers_hours.add(centers);
