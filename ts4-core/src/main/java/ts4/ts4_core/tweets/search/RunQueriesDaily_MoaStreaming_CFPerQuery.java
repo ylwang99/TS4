@@ -405,6 +405,9 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery {
 		} catch(Exception e){
             System.out.println("File not found");
 		}
+		for (int i = 0; i < partitionNum; i ++) {
+			System.out.println(indexes_hours.get(0).get(i).size());
+		}
 		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
