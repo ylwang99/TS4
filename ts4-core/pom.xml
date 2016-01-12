@@ -122,8 +122,8 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.util.test</mainClass>
-              <name>test</name>
+              <mainClass>ts4.ts4_core.tweets.util.CFPerQuery_SpeicalStore</mainClass>
+              <name>CFPerQuery_SpeicalStore</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
@@ -150,6 +150,13 @@
               </jvmSettings>
             </program>
             <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_CFPerQuery_SpecialStore</mainClass>
+              <name>RunQueriesDaily_CFPerQuery_SpecialStore</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
               <mainClass>ts4.ts4_core.tweets.search.RunQueriesHourly_Streaming_CFPerQuery</mainClass>
               <name>RunQueriesHourly_Streaming_CFPerQuery</name>
               <jvmSettings>
@@ -166,6 +173,13 @@
             <program>
               <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_MoaStreaming_CFPerQuery</mainClass>
               <name>RunQueriesDaily_MoaStreaming_CFPerQuery</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore</mainClass>
+              <name>RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
