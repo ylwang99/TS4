@@ -123,6 +123,7 @@ public class CFPerQuery_SpecialStore {
 				System.out.print(cf[topicCnt].getFreq(term) + " ");
 			}
 			System.out.println(cf[topicCnt].getTotalTermCnt());
+			topicCnt ++;
 		}
 	}
 
