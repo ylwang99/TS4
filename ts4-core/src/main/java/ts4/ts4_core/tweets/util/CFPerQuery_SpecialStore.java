@@ -121,9 +121,8 @@ public class CFPerQuery_SpecialStore {
 			List<String> queryterms = parse(ANALYZER, topic.getQuery());
 			for (String term : queryterms) {
 				System.out.print(cf[topicCnt].getFreq(term) + " ");
-				System.out.print(cf[topicCnt].getTotalTermCnt());
 			}
-			System.out.println();
+			System.out.println(cf[topicCnt].getTotalTermCnt());
 		}
 	}
 
