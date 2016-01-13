@@ -59,7 +59,9 @@ public class StreamKM extends AbstractClusterer {
 		this.centresStreamingCoreset = new Point[this.numberOfCentres];
 
 		//initalize random generator with seed
-		this.clustererRandom = new MTRandom(this.randomSeedOption.getValue());
+		//this.clustererRandom = new MTRandom(this.randomSeedOption.getValue());
+		//initialize random generator
+		this.clustererRandom = new MTRandom();
 	}
 
     @Override
