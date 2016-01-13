@@ -122,8 +122,8 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.util.CFPerQuery_SpeicalStore</mainClass>
-              <name>CFPerQuery_SpeicalStore</name>
+              <mainClass>ts4.ts4_core.tweets.util.CFPerQuery_SpecialStore</mainClass>
+              <name>CFPerQuery_SpecialStore</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
