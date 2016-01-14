@@ -387,12 +387,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 		}
 		LOG.info("Finished reading cluster centers and assignments from file.");
 		
-		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
-		int topicTotal = 0;
-		for ( @SuppressWarnings("unused") TrecTopic topic : topics ) {
-			topicTotal ++;
-		}
-		
 		// Read in cf file
 		int queryCount = 0;
 		List<List<Integer>> cf = new ArrayList<List<Integer>>();
@@ -418,6 +412,12 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		}
+		
+		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
+		int topicTotal = 0;
+		for ( @SuppressWarnings("unused") TrecTopic topic : topics ) {
+			topicTotal ++;
 		}
 		
 		// Read in dayhours File
@@ -488,6 +488,20 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			}
 			for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
 				partitions[partitionInd ++] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
+			}
+			
+			for (top = 1; top <= partitionNum; top ++) {
+				if (cmdline.hasOption(HOURS_OPTION)) {
+					File f = new File(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt");
+					if (f.exists()) {
+						f.delete();
+					}
+				} else {
+					File f = new File(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt");
+					if (f.exists()) {
+						f.delete();
+					}
+				}
 			}
 			
 			int[] selectedSizeArr = new int[partitionNum];
