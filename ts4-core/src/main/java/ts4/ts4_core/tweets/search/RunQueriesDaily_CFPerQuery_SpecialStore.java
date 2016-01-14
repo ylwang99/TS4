@@ -606,7 +606,7 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 						if (score > 0) {
 							topN.add(i, score);
 							if (existids.contains(i)) {
-								LOG.info("hour"+hour);
+								LOG.info("hour"+finalHour);
 							}
 							existids.add(i);
 						}
