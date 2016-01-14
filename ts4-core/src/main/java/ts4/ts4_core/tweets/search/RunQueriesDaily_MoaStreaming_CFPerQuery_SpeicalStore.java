@@ -503,6 +503,19 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 //		System.out.println("top n\tavg scan size percentage");
 		int topicCnt = 0;
 		double[] percentage = new double[partitionNum];
+		for (top = 1; top <= partitionNum; top ++) {
+			if (cmdline.hasOption(HOURS_OPTION)) {
+				File f = new File(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt");
+				if (f.exists()) {
+					f.delete();
+				}
+			} else {
+				File f = new File(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt");
+				if (f.exists()) {
+					f.delete();
+				}
+			}
+		}
 		for ( TrecTopic topic : topics ) {
 			List<String> queryterms = parse(ANALYZER, topic.getQuery());
 			int[] qids = new int[queryterms.size()];
@@ -519,20 +532,6 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 			}
 			for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
 				partitions[partitionInd ++] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
-			}
-			
-			for (top = 1; top <= partitionNum; top ++) {
-				if (cmdline.hasOption(HOURS_OPTION)) {
-					File f = new File(outputPath + "/glove_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt");
-					if (f.exists()) {
-						f.delete();
-					}
-				} else {
-					File f = new File(outputPath + "/glove_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt");
-					if (f.exists()) {
-						f.delete();
-					}
-				}
 			}
 			
 			int[] selectedSizeArr = new int[partitionNum];
