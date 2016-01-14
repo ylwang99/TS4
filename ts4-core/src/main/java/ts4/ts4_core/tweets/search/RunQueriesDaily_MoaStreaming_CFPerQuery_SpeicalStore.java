@@ -541,9 +541,9 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 			for (top = 1; top <= partitionNum; top ++) {
 				BufferedWriter bw = null;
 				if (cmdline.hasOption(HOURS_OPTION)) {
-					bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt")));
+					bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt", true)));
 				} else {
-					bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt")));
+					bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt", true)));
 				}
 				partitionInd = 0;
 				for (int day = 1; day <= days[topicCnt]; day ++) {
