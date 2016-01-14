@@ -598,9 +598,9 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 					count ++;
 				}
 				topN = tempTopN;
-				topicCnt ++;
 				bw.close();
 			}
+			topicCnt ++;
 			for (top = 1; top <= partitionNum; top ++) {
 				percentage[top - 1] += (double)(selectedSizeArr[top - 1]) / selectedSizeArr[partitionNum - 1];
 			}
