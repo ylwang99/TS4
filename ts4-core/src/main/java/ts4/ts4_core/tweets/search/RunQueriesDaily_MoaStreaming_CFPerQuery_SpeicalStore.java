@@ -2,7 +2,7 @@
  * Run: sh target/appassembler/bin/RunQueriesDaily_Streaming_CFPerQuery -index {indexPath} -stats {statsPath} 
  * 		-cf {queryCfPath} -docsvector {docVectorPath} -dayclusters {dayclustersPath} -hourclusters {hourclustersPath}
  * 		-dayhours {dayFile} [-hourly true] -dimension {dimension} -partition {partitionNum} -top {N}
- * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath}
+ * 		-queries {queriesPath} -queriesvector {queryVectorPath} -output {outputPath} -trail {trail}
  */
 package ts4.ts4_core.tweets.search;
 
@@ -76,6 +76,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 	private static final String QUERIES_OPTION = "queries";
 	private static final String QUERIES_VECTOR_OPTION = "queriesvector";
 	private static final String OUTPUT_OPTION = "output";
+	private static final String TRAIL = "trail";
 
 	@SuppressWarnings({ "static-access", "deprecation" })
 	public static void main(String[] args) throws Exception {
@@ -112,6 +113,8 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 				.withDescription("query vector").create(QUERIES_VECTOR_OPTION));
 		options.addOption(OptionBuilder.withArgName("file").hasArg()
 				.withDescription("output location").create(OUTPUT_OPTION));
+		options.addOption(OptionBuilder.withArgName("arg").hasArg()
+				.withDescription("trail").create(TRAIL));
 
 		CommandLine cmdline = null;
 		CommandLineParser parser = new GnuParser();
@@ -122,7 +125,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 			System.exit(-1);
 		}
 
-		if (!cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CF_OPTION) || !cmdline.hasOption(DOCVECTORS) || !cmdline.hasOption(DAY_CLUSTER_OPTION) || !cmdline.hasOption(HOUR_CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
+		if (!cmdline.hasOption(TRAIL) || !cmdline.hasOption(INDEX_OPTION) || !cmdline.hasOption(STATS_OPTION) || !cmdline.hasOption(CF_OPTION) || !cmdline.hasOption(DOCVECTORS) || !cmdline.hasOption(DAY_CLUSTER_OPTION) || !cmdline.hasOption(HOUR_CLUSTER_OPTION) || !cmdline.hasOption(DIMENSION) || !cmdline.hasOption(PARTITION) || !cmdline.hasOption(DAYHOURS_OPTION) || !cmdline.hasOption(QUERIES_OPTION) || !cmdline.hasOption(QUERIES_VECTOR_OPTION) || !cmdline.hasOption(OUTPUT_OPTION)) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore.class.getName(), options);
 			System.exit(-1);
@@ -140,6 +143,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 		String queryPath = cmdline.getOptionValue(QUERIES_OPTION);
 		String queryVectorPath = cmdline.getOptionValue(QUERIES_VECTOR_OPTION);
 		String outputPath = cmdline.getOptionValue(OUTPUT_OPTION);
+		String trail = cmdline.getOptionValue(TRAIL);
 		
 		// Read in index
 		File indexLocation = new File(indexPath);
@@ -497,104 +501,84 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 		}
 		
 //		System.out.println("top n\tavg scan size percentage");
-		for (top = 1; top <= partitionNum; top ++) {
-			float avgperctg = 0.0f;
-			BufferedWriter bw = null;
-			if (cmdline.hasOption(HOURS_OPTION)) {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_hourly_top" + top + ".txt")));
-			} else {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_daily_top" + top + ".txt")));
+		int topicCnt = 0;
+		double[] percentage = new double[partitionNum];
+		for ( TrecTopic topic : topics ) {
+			List<String> queryterms = parse(ANALYZER, topic.getQuery());
+			int[] qids = new int[queryterms.size()];
+			int c = 0;
+			for (String term : queryterms) {
+				qids[c] = termStats.getId(term);
+				c++;
 			}
-			int topicCnt = 0;
-			for ( TrecTopic topic : topics ) {  
-				List<String> queryterms = parse(ANALYZER, topic.getQuery());
-				TopNScoredInts topN = new TopNScoredInts(numResults);
-				int[] qids = new int[queryterms.size()];
-				int c = 0;
-				for (String term : queryterms) {
-					qids[c] = termStats.getId(term);
-					c++;
+			
+			int[][] partitions = new int[days[topicCnt] + hours[topicCnt]][partitionNum];
+			int partitionInd = 0;
+			for (int day = 1; day <= days[topicCnt]; day ++) {
+				partitions[partitionInd ++] = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], 100);
+			}
+			for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
+				partitions[partitionInd ++] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
+			}
+			
+			int[] selectedSizeArr = new int[partitionNum];
+			int selectedSize = 0;
+			TopNScoredInts topN = new TopNScoredInts(numResults);
+			for (top = 1; top <= partitionNum; top ++) {
+				BufferedWriter bw = null;
+				if (cmdline.hasOption(HOURS_OPTION)) {
+					bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_hourly_top" + top + "_trail" + trail + ".txt")));
+				} else {
+					bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath + "/glove_streaming_d" + dimension + "_mean_daily_top" + top + "_trail" + trail + ".txt")));
 				}
-				
-				int totalSize = 0;
+				partitionInd = 0;
 				for (int day = 1; day <= days[topicCnt]; day ++) {
-					for (int i = 0; i < partitionNum; i ++) {
-						for (int j = 0; j < indexes_days.get(day - 1).get(i).size(); j ++) {
-							if (ids[indexes_days.get(day - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							totalSize ++;
+					for (int idx = 0; idx < indexes_days.get(day - 1).get(partitions[partitionInd][top - 1]).size(); idx ++) {
+						int i = indexes_days.get(day - 1).get(partitions[partitionInd][top - 1]).get(idx);
+						if (ids[i] > topic.getQueryTweetTime()) {
+							continue;
 						}
-					}
-				}
-				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
-					for (int i = 0; i < partitionNum; i ++) {
-						for (int j = 0; j < indexes_hours.get(hour - 1).get(i).size(); j ++) {
-							if (ids[indexes_hours.get(hour - 1).get(i).get(j)] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							totalSize ++;
-						}
-					}
-				}
-				int selectedSize = 0;
-				for (int day = 1; day <= days[topicCnt]; day ++) {
-					int[] partitions = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], top);
-//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
-//					for (int topNum = 0; topNum < top; topNum ++) {
-					for (int partition : partitions) {
-//						int partition = partitions[topNum];
-						for (int idx = 0; idx < indexes_days.get(day - 1).get(partition).size(); idx ++) {
-							int i = indexes_days.get(day - 1).get(partition).get(idx);
-							if (ids[i] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							selectedSize ++;
-							float score = 0.0F;
-							for (int t = 0; t < c; t++) {
-								float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
-								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-									if (terms[offsets[i] + j] == qids[t]) {
-										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-										score += Math.log(mu / (docLengthEncoded[i] + mu));
-										break;
-									}
+						selectedSize ++;
+						float score = 0.0F;
+						for (int t = 0; t < c; t++) {
+							float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
+							for (int j = 0; j < docLengthOrdered[i]; j ++) {
+								if (terms[offsets[i] + j] == qids[t]) {
+									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+									score += Math.log(mu / (docLengthEncoded[i] + mu));
+									break;
 								}
 							}
-							if (score > 0) {
-								topN.add(i, score);
-							}
+						}
+						if (score > 0) {
+							topN.add(i, score);
 						}
 					}
+					partitionInd ++;
 				}
 				for (hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt] - 1; hour ++) {
-					int[] partitions = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], top);
-//					int[] partitions = determinePartition(centers.get(center), queryVector[topicCnt], partitionNum);
-//					for (int topNum = 0; topNum < top; topNum ++) {
-					for (int partition : partitions) {
-//						int partition = partitions[topNum];
-						for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partition).size(); idx ++) {
-							int i = indexes_hours.get(hour - 1).get(partition).get(idx);
-							if (ids[i] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							selectedSize ++;
-							float score = 0.0F;
-							for (int t = 0; t < c; t++) {
-								float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
-								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-									if (terms[offsets[i] + j] == qids[t]) {
-										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-										score += Math.log(mu / (docLengthEncoded[i] + mu));
-										break;
-									}
+					for (int idx = 0; idx < indexes_hours.get(hour - 1).get(partitions[partitionInd][top - 1]).size(); idx ++) {
+						int i = indexes_hours.get(hour - 1).get(partitions[partitionInd][top - 1]).get(idx);
+						if (ids[i] > topic.getQueryTweetTime()) {
+							continue;
+						}
+						selectedSize ++;
+						float score = 0.0F;
+						for (int t = 0; t < c; t++) {
+							float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
+							for (int j = 0; j < docLengthOrdered[i]; j ++) {
+								if (terms[offsets[i] + j] == qids[t]) {
+									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+									score += Math.log(mu / (docLengthEncoded[i] + mu));
+									break;
 								}
 							}
-							if (score > 0) {
-								topN.add(i, score);
-							}
+						}
+						if (score > 0) {
+							topN.add(i, score);
 						}
 					}
+					partitionInd ++;
 				}
 				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
 				for (int partition = 0; partition < partitionNum; partition ++) {
@@ -620,19 +604,26 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 						}
 					}
 				}
-				
+				selectedSizeArr[top - 1] = selectedSize;
+			
 				int count = 1;
+				TopNScoredInts tempTopN = new TopNScoredInts(numResults);
 				for (PairOfIntFloat pair : topN.extractAll()) {
+					tempTopN.add(pair.getKey(), pair.getValue());
 					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
 					bw.newLine();
 					count ++;
 				}
+				topN = tempTopN;
 				topicCnt ++;
-				avgperctg += (float)(selectedSize) / totalSize;
-				break;
+				bw.close();
 			}
-			System.out.println(top + "\t" + (avgperctg / topicCnt));
-			bw.close();
+			for (top = 1; top <= partitionNum; top ++) {
+				percentage[top - 1] += (double)(selectedSizeArr[top - 1]) / selectedSizeArr[partitionNum - 1];
+			}
+		}
+		for (top = 1; top <= partitionNum; top ++) {
+			System.out.println(top + "\t" + (percentage[top - 1] / topicCnt));
 		}
 	}
 
@@ -652,17 +643,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 	}
 
 	public static int[] determinePartition(double[][] centers, double[] queryVector, int top) {
-//	public static int[] determinePartition(double[][] centers, double[] queryVector, int partition) {
 		List<ScoreIdPair> all = new ArrayList<ScoreIdPair>();
-		// Euclidean distance
-//		for(int i = 0; i < centers.length; i ++){
-//			double distance = 0;
-//			for (int j = 0; j < queryVector.length; j ++) {
-//				distance += (centers[i][j] - queryVector[j]) * (centers[i][j] - queryVector[j]);
-//			}
-//			all.put(distance, i);
-//		}
-		
 		// Cosine similarity
 		for (int i = 0; i < centers.length; i ++) {
 			double similarity = 0;
@@ -680,7 +661,6 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 		Collections.sort(all, new ScoreComparator());
 		
 		int[] result = new int[top];
-//		int[] result = new int[partition];
 		int count = 0;
 		for (ScoreIdPair pair : all) {
 			if (count < top) {
