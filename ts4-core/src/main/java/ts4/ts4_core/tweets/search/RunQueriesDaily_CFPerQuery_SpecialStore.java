@@ -584,31 +584,33 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 					}
 					partitionInd ++;
 				}
-				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
-				for (int partition = 0; partition < partitionNum; partition ++) {
-					for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
-						int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
-						if (ids[i] > topic.getQueryTweetTime()) {
-							continue;
-						}
-						selectedSize ++;
-						float score = 0.0F;
-						for (int t = 0; t < c; t++) {
-							float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
-							for (int j = 0; j < docLengthOrdered[i]; j ++) {
-								if (terms[offsets[i] + j] == qids[t]) {
-									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-									score += Math.log(mu / (docLengthEncoded[i] + mu));
-									break;
+				if (top == 1) {
+					int finalHour = 24 * days[topicCnt] + hours[topicCnt];
+					for (int partition = 0; partition < partitionNum; partition ++) {
+						for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
+							int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
+							if (ids[i] > topic.getQueryTweetTime()) {
+								continue;
+							}
+							selectedSize ++;
+							float score = 0.0F;
+							for (int t = 0; t < c; t++) {
+								float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
+								for (int j = 0; j < docLengthOrdered[i]; j ++) {
+									if (terms[offsets[i] + j] == qids[t]) {
+										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+										score += Math.log(mu / (docLengthEncoded[i] + mu));
+										break;
+									}
 								}
 							}
-						}
-						if (score > 0) {
-							topN.add(i, score);
-							if (existids.contains(i)) {
-								LOG.info("hour"+finalHour);
+							if (score > 0) {
+								topN.add(i, score);
+								if (existids.contains(i)) {
+									LOG.info("hour"+finalHour);
+								}
+								existids.add(i);
 							}
-							existids.add(i);
 						}
 					}
 				}
