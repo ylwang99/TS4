@@ -498,28 +498,15 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			int[][] partitions = new int[days[topicCnt] + hours[topicCnt]][partitionNum];
 			int partitionInd = 0;
 			for (int day = 1; day <= days[topicCnt]; day ++) {
-				partitions[partitionInd] = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], 100);
-				HashSet<Integer> par = new HashSet<Integer>();
-				for (int iii = 0; iii < partitionNum; iii ++) {
-					par.add(partitions[partitionInd][iii]);
-				}
-				LOG.info(par.size());
-				partitionInd ++;
+				partitions[partitionInd ++] = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], 100);
 			}
 			for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
-				partitions[partitionInd] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
-				HashSet<Integer> par = new HashSet<Integer>();
-				for (int iii = 0; iii < partitionNum; iii ++) {
-					par.add(partitions[partitionInd][iii]);
-				}
-				LOG.info(par.size());
-				partitionInd ++;
+				partitions[partitionInd ++] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
 			}
 			
 			int[] selectedSizeArr = new int[partitionNum];
 			int selectedSize = 0;
 			TopNScoredInts topN = new TopNScoredInts(numResults);
-			HashSet<Integer> existids = new HashSet<Integer>();
 			for (top = 1; top <= partitionNum; top ++) {
 				BufferedWriter bw = null;
 				if (cmdline.hasOption(HOURS_OPTION)) {
@@ -548,10 +535,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 						}
 						if (score > 0) {
 							topN.add(i, score);
-							if (existids.contains(i)) {
-								LOG.info("day"+day);
-							}
-							existids.add(i);
 						}
 					}
 					partitionInd ++;
@@ -576,10 +559,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 						}
 						if (score > 0) {
 							topN.add(i, score);
-							if (existids.contains(i)) {
-								LOG.info("hour"+hour);
-							}
-							existids.add(i);
 						}
 					}
 					partitionInd ++;
@@ -606,10 +585,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 							}
 							if (score > 0) {
 								topN.add(i, score);
-								if (existids.contains(i)) {
-									LOG.info("hour"+finalHour);
-								}
-								existids.add(i);
 							}
 						}
 					}
@@ -631,7 +606,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			for (top = 1; top <= partitionNum; top ++) {
 				percentage[top - 1] += (double)(selectedSizeArr[top - 1]) / selectedSizeArr[partitionNum - 1];
 			}
-			break;
 		}
 		for (top = 1; top <= partitionNum; top ++) {
 			System.out.println(top + "\t" + (percentage[top - 1] / topicCnt));
