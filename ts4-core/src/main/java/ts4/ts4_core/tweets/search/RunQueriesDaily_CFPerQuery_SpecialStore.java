@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -382,9 +383,9 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 	            System.out.println("File not found");
 			}
 		}
-		for (int i = 0; i < partitionNum; i ++) {
-			System.out.println(indexes_hours.get(0).get(i).size());
-		}
+//		for (int i = 0; i < partitionNum; i ++) {
+//			System.out.println(indexes_hours.get(0).get(i).size());
+//		}
 		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		// Read in cf file
@@ -486,8 +487,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			}
 		}
 		for ( TrecTopic topic : topics ) {
-			LOG.info("topic count:" + topicCnt);
-			LOG.info(cf.get(topicCnt).size());
 			List<String> queryterms = parse(ANALYZER, topic.getQuery());
 			int[] qids = new int[queryterms.size()];
 			int c = 0;
@@ -499,15 +498,28 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			int[][] partitions = new int[days[topicCnt] + hours[topicCnt]][partitionNum];
 			int partitionInd = 0;
 			for (int day = 1; day <= days[topicCnt]; day ++) {
-				partitions[partitionInd ++] = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], 100);
+				partitions[partitionInd] = determinePartition(centers_days.get(day - 1), queryVector[topicCnt], 100);
+				HashSet<Integer> par = new HashSet<Integer>();
+				for (int iii = 0; iii < partitionNum; iii ++) {
+					par.add(partitions[partitionInd][iii]);
+				}
+				LOG.info(par.size());
+				partitionInd ++;
 			}
 			for (int hour = 24 * days[topicCnt] + 1; hour <= 24 * days[topicCnt] + hours[topicCnt]; hour ++) {
-				partitions[partitionInd ++] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
+				partitions[partitionInd] = determinePartition(centers_hours.get(hour - 1), queryVector[topicCnt], 100);
+				HashSet<Integer> par = new HashSet<Integer>();
+				for (int iii = 0; iii < partitionNum; iii ++) {
+					par.add(partitions[partitionInd][iii]);
+				}
+				LOG.info(par.size());
+				partitionInd ++;
 			}
 			
 			int[] selectedSizeArr = new int[partitionNum];
 			int selectedSize = 0;
 			TopNScoredInts topN = new TopNScoredInts(numResults);
+			HashSet<Integer> existids = new HashSet<Integer>();
 			for (top = 1; top <= partitionNum; top ++) {
 				BufferedWriter bw = null;
 				if (cmdline.hasOption(HOURS_OPTION)) {
@@ -536,6 +548,10 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 						}
 						if (score > 0) {
 							topN.add(i, score);
+							if (existids.contains(i)) {
+								LOG.info("day"+day);
+							}
+							existids.add(i);
 						}
 					}
 					partitionInd ++;
@@ -560,6 +576,10 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 						}
 						if (score > 0) {
 							topN.add(i, score);
+							if (existids.contains(i)) {
+								LOG.info("hour"+hour);
+							}
+							existids.add(i);
 						}
 					}
 					partitionInd ++;
@@ -585,6 +605,10 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 						}
 						if (score > 0) {
 							topN.add(i, score);
+							if (existids.contains(i)) {
+								LOG.info("hour"+hour);
+							}
+							existids.add(i);
 						}
 					}
 				}
@@ -605,6 +629,7 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			for (top = 1; top <= partitionNum; top ++) {
 				percentage[top - 1] += (double)(selectedSizeArr[top - 1]) / selectedSizeArr[partitionNum - 1];
 			}
+			break;
 		}
 		for (top = 1; top <= partitionNum; top ++) {
 			System.out.println(top + "\t" + (percentage[top - 1] / topicCnt));
