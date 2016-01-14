@@ -132,12 +132,12 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			System.err.println("Error: " + indexLocation + " does not exist!");
 			System.exit(-1);
 		}
-//		LOG.info("Reading term statistics from index.");
+		LOG.info("Reading term statistics from index.");
 		TermStatistics termStats = new TermStatistics(indexPath, GenerateStatistics.NUM_DOCS);
-//		LOG.info("Finished reading term statistics from index.");
+		LOG.info("Finished reading term statistics from index.");
 
 		// Read in stats
-//		LOG.info("Reading term statistics from file.");
+		LOG.info("Reading term statistics from file.");
 		int totalTerms = 0;
 		int numDoc = 0;
 		try {
@@ -278,10 +278,10 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 		for (int i = 1; i < numDoc; i ++) {
 			offsets[i] = offsets[i - 1] + docLengthOrdered[i - 1];
 		}
-//		LOG.info("Finished reading term statistics from file.");
+		LOG.info("Finished reading term statistics from file.");
 		
 		// Read in cluster centers and assignments
-//		LOG.info("Reading cluster centers and assignments from file.");
+		LOG.info("Reading cluster centers and assignments from file.");
 		List<double[][]> centers_days = new ArrayList<double[][]>();
 		List<List<List<Integer>>> indexes_days = new ArrayList<List<List<Integer>>>();
 		for (int i = 1; i <= DAYS; i ++) {
@@ -385,7 +385,7 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 		for (int i = 0; i < partitionNum; i ++) {
 			System.out.println(indexes_hours.get(0).get(i).size());
 		}
-//		LOG.info("Finished reading cluster centers and assignments from file.");
+		LOG.info("Finished reading cluster centers and assignments from file.");
 		
 		TrecTopicSet topics = TrecTopicSet.fromFile(new File(queryPath));
 		int topicTotal = 0;
@@ -450,7 +450,7 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 			e1.printStackTrace();
 		}
 		
-//		LOG.info("Running queries.");
+		LOG.info("Running queries.");
 //		PrintStream out = new PrintStream(System.out, true, "UTF-8");
 		double[][] queryVector = new double[topicTotal][dimension];
 		int ind = 0;
