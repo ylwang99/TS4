@@ -596,7 +596,6 @@ public class RunQueriesDaily_CFPerQuery_SpecialStore {
 				selectedSizeArr[top - 1] = selectedSize;
 			
 				int count = 1;
-				
 				for (PairOfIntFloat pair : topN.extractAll()) {
 					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
 					bw.newLine();

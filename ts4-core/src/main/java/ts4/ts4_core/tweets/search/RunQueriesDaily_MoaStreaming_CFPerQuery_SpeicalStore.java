@@ -340,7 +340,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 				indexes_days.get(indexes_days.size() - 1).add(new ArrayList<Integer>());
 			}
 			try {
-				File[] files = new File(dayclusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011").listFiles();
+				File[] files = new File(dayclusterPath + "/clustercenters-d" + dimension + "-day" + i + "-2011-trail1").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -362,7 +362,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 	            System.out.println("File not found");
 			}
 			try {
-				File[] files = new File(dayclusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011").listFiles();
+				File[] files = new File(dayclusterPath + "/clusterassign-d" + dimension + "-day" + i + "-2011-trail1").listFiles();
 				Arrays.sort(files);
 				for (File file : files) {
 					if (file.getName().startsWith("part")) {
@@ -537,6 +537,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 			int[] selectedSizeArr = new int[partitionNum];
 			int selectedSize = 0;
 			TopNScoredInts topN = new TopNScoredInts(numResults);
+			TopNScoredInts prevTopN = new TopNScoredInts(numResults);
 			for (top = 1; top <= partitionNum; top ++) {
 				BufferedWriter bw = null;
 				if (cmdline.hasOption(HOURS_OPTION)) {
@@ -564,7 +565,7 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 							}
 						}
 						if (score > 0) {
-							topN.add(i, score);
+							prevTopN.add(i, score);
 						}
 					}
 					partitionInd ++;
@@ -588,48 +589,49 @@ public class RunQueriesDaily_MoaStreaming_CFPerQuery_SpeicalStore {
 							}
 						}
 						if (score > 0) {
-							topN.add(i, score);
+							prevTopN.add(i, score);
 						}
 					}
 					partitionInd ++;
 				}
-				if (top == 1) {
-					int finalHour = 24 * days[topicCnt] + hours[topicCnt];
-					for (int partition = 0; partition < partitionNum; partition ++) {
-						for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
-							int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
-							if (ids[i] > topic.getQueryTweetTime()) {
-								continue;
-							}
-							selectedSize ++;
-							float score = 0.0F;
-							for (int t = 0; t < c; t++) {
-								float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
-								for (int j = 0; j < docLengthOrdered[i]; j ++) {
-									if (terms[offsets[i] + j] == qids[t]) {
-										score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
-										score += Math.log(mu / (docLengthEncoded[i] + mu));
-										break;
-									}
+				TopNScoredInts tempTopN = new TopNScoredInts(numResults);
+				for (PairOfIntFloat pair : prevTopN.extractAll()) {
+					tempTopN.add(pair.getKey(), pair.getValue());
+					topN.add(pair.getKey(), pair.getValue());
+				}
+				int finalHour = 24 * days[topicCnt] + hours[topicCnt];
+				for (int partition = 0; partition < partitionNum; partition ++) {
+					for (int idx = 0; idx < indexes_hours.get(finalHour - 1).get(partition).size(); idx ++) {
+						int i = indexes_hours.get(finalHour - 1).get(partition).get(idx);
+						if (ids[i] > topic.getQueryTweetTime()) {
+							continue;
+						}
+						selectedSize ++;
+						float score = 0.0F;
+						for (int t = 0; t < c; t++) {
+							float prob = (float)(cf.get(topicCnt).get(t) + 1) / (cf.get(topicCnt).get(c) + 1);
+							for (int j = 0; j < docLengthOrdered[i]; j ++) {
+								if (terms[offsets[i] + j] == qids[t]) {
+									score += Math.log(1 + tf[offsets[i] + j] / (mu * prob));
+									score += Math.log(mu / (docLengthEncoded[i] + mu));
+									break;
 								}
 							}
-							if (score > 0) {
-								topN.add(i, score);
-							}
+						}
+						if (score > 0) {
+							topN.add(i, score);
 						}
 					}
 				}
 				selectedSizeArr[top - 1] = selectedSize;
 			
 				int count = 1;
-				TopNScoredInts tempTopN = new TopNScoredInts(numResults);
 				for (PairOfIntFloat pair : topN.extractAll()) {
-					tempTopN.add(pair.getKey(), pair.getValue());
 					bw.write(String.format("%d Q0 %s %d %f kmeans", Integer.parseInt(topic.getId().substring(2)), ids[pair.getKey()], count, pair.getValue()));
 					bw.newLine();
 					count ++;
 				}
-				topN = tempTopN;
+				prevTopN = tempTopN;
 				bw.close();
 			}
 			topicCnt ++;
