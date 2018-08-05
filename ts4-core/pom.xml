@@ -37,18 +37,116 @@
         <version>1.3.1</version>
         <configuration>
           <programs>
-          	<program>
+            <program>
+              <mainClass>ts4.ts4_core.glove.DocToVec</mainClass>
+              <name>DocToVec</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.glove.GenInput4Glove</mainClass>
+              <name>GenInput4Glove</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.glove.VectorToMap</mainClass>
+              <name>VectorToMap</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.moa.clustering.MoaStreaming</mainClass>
+              <name>MoaStreaming</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.moa.util.VecToArffFile</mainClass>
+              <name>VecToArffFile</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
               <mainClass>ts4.ts4_core.tweets.index.IndexStatuses</mainClass>
               <name>IndexStatuses</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
             </program>
-          	<program>
-              <mainClass>ts4.ts4_core.tweets.util.GenerateTweetText</mainClass>
-              <name>GenerateTweetText</name>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.index.IndexStatuses_ClusterPartition_2011</mainClass>
+              <name>IndexStatuses_ClusterPartition_2011</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.index.IndexStatuses_Partition_2011</mainClass>
+              <name>IndexStatuses_Partition_2011</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.index.IndexStatuses_Partition_2013</mainClass>
+              <name>IndexStatuses_Partition_2013</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_Kmeans</mainClass>
+              <name>RunQueries_Kmeans</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_Kmeans_AllTrials</mainClass>
+              <name>RunQueries_Kmeans_AllTrials</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_MoaStreaming</mainClass>
+              <name>RunQueries_MoaStreaming</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_MoaStreaming_AllTrials</mainClass>
+              <name>RunQueries_MoaStreaming_AllTrials</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_Kmeans_ClusterPartition</mainClass>
+              <name>RunQueries_Kmeans_ClusterPartition</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_Kmeans_Cost</mainClass>
+              <name>RunQueries_Kmeans_Cost</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.search.RunQueries_MoaStreaming_Cost</mainClass>
+              <name>RunQueries_MoaStreaming_Cost</name>
+              <jvmSettings>
+                <maxMemorySize>156g</maxMemorySize>
               </jvmSettings>
             </program>
             <program>
@@ -66,29 +164,43 @@
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.selectivesearch.GenInput4Glove</mainClass>
-              <name>GenInput4Glove</name>
+              <mainClass>ts4.ts4_core.tweets.util.GenerateTweetText_2011</mainClass>
+              <name>GenerateTweetText_2011</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.selectivesearch.VectorToMap</mainClass>
-              <name>VectorToMap</name>
+              <mainClass>ts4.ts4_core.tweets.util.GenerateTweetText_2013</mainClass>
+              <name>GenerateTweetText_2013</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.selectivesearch.DocToVec</mainClass>
-              <name>DocToVec</name>
+              <mainClass>ts4.ts4_core.tweets.util.GenerateTweetText_Edinburgh</mainClass>
+              <name>GenerateTweetText_Edinburgh</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
             </program>
             <program>
-              <mainClass>ts4.ts4_core.tweets.search.RunQueries</mainClass>
-              <name>RunQueries</name>
+              <mainClass>ts4.ts4_core.tweets.util.GetClusterSizes</mainClass>
+              <name>GetClusterSizes</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.util.GetHourlySize_2011</mainClass>
+              <name>GetHourlySize_2011</name>
+              <jvmSettings>
+                <maxMemorySize>128g</maxMemorySize>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>ts4.ts4_core.tweets.util.GetHourlySize_2013</mainClass>
+              <name>GetHourlySize_2013</name>
               <jvmSettings>
                 <maxMemorySize>128g</maxMemorySize>
               </jvmSettings>
@@ -116,6 +228,11 @@
 		<version>2.2.0</version>
     </dependency>
     <dependency>
+		<groupId>org.apache.mahout</groupId>
+		<artifactId>mahout-core</artifactId>
+		<version>0.8</version>
+	</dependency>
+    <dependency>
 		<groupId>log4j</groupId>
 		<artifactId>log4j</artifactId>
 		<version>1.2.17</version>
@@ -130,6 +247,16 @@
 		<artifactId>guava</artifactId>
 		<version>14.0.1</version>
     </dependency>
+    <dependency>
+  		<groupId>nz.ac.waikato.cms.moa</groupId>
+  		<artifactId>moa</artifactId>
+  		<version>2013.11</version>
+  	</dependency>
+  	<dependency>
+		<groupId>nz.ac.waikato.cms.weka</groupId>
+		<artifactId>weka-dev</artifactId>
+		<version>3.7.5</version>
+	</dependency>
     <dependency>
 		<groupId>cc.twittertools</groupId>
 		<artifactId>twitter-tools-core</artifactId>
