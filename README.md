@@ -98,3 +98,13 @@ Getting Started
 	...
 	```
 	and cluster id starts from 0.
+	
+11. Run queries:
+	First prepare stats:
+	```
+	$ sh target/appassembler/bin/GenerateStatistics with appropriate params
+	```
+	Then run queries:
+	```
+	$ sh target/appassembler/bin/RunQueries_Kmeans with apporpriate params
+	```
