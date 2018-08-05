@@ -100,6 +100,7 @@ Getting Started
 	and cluster id starts from 0.
 	
 11. Run queries:
+
 	First prepare stats:
 	```
 	$ sh target/appassembler/bin/GenerateStatistics with appropriate params
